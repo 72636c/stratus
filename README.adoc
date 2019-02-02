@@ -2,7 +2,7 @@
 
 Simple layer for managing CloudFormation stacks in CI/CD.
 
-== Usage
+== Commands
 
 Preview change set:
 
@@ -21,3 +21,7 @@ Delete stack:
 ```shell
 stratus delete
 ```
+
+== Config
+
+link:/samples[`/samples`]

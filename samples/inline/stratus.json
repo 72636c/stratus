@@ -1,0 +1,14 @@
+{
+  "stacks": [
+    {
+      "name": "stratus-sample-inline",
+
+      "capabilities": [],
+      "parameters": [],
+      "terminationProtection": false,
+
+      "policyFile": "./policy.json",
+      "templateFile": "./template.yaml"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Stratus Inline Sample
+
+Resources:
+  SampleParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: Hello world!
