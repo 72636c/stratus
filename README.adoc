@@ -4,6 +4,20 @@ image:https://cloud.drone.io/api/badges/72636c/stratus/status.svg[Build Status, 
 
 Simple layer for managing CloudFormation stacks in CI/CD.
 
+== Distribution
+
+=== GitHub
+
+<https://github.com/72636c/stratus/releases/latest>
+
+=== Docker
+
+<https://hub.docker.com/r/72636c/stratus>
+
+```docker
+COPY --from=72636c/stratus:1 /bin/stratus ./
+```
+
 == Commands
 
 === Native
@@ -73,7 +87,7 @@ More in link:/samples[`/samples`].
 - Synchronous interface
 - Vanilla CloudFormation artefacts
 
-[options=header]
+[cols="<,<,<,<", options="header"]
 |===
 | Tool | Distribution | Dry Run Command | Deployment Command
 
