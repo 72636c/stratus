@@ -1,1 +1,23 @@
 = Stratus
+
+Simple layer for managing CloudFormation stacks in CI/CD.
+
+== Usage
+
+Preview change set:
+
+```shell
+stratus preview
+```
+
+Deploy change set:
+
+```shell
+stratus deploy
+```
+
+Delete stack:
+
+```shell
+stratus delete
+```
