@@ -18,7 +18,7 @@ import (
 
 var (
 	usage = fmt.Sprintf(
-		"usage: stratus [-output %s] %s stratus.json",
+		"usage: stratus [-output %s] %s [stratus.json]",
 		loggerNames,
 		commandNames,
 	)
@@ -32,7 +32,7 @@ type Args struct {
 }
 
 func FromCommandLine() (*Args, error) {
-	if len(os.Args) < 3 {
+	if len(os.Args) < 2 {
 		return nil, errors.New(usage)
 	}
 
@@ -46,7 +46,11 @@ func FromCommandLine() (*Args, error) {
 	}
 
 	commandString := flag.Arg(0)
+
 	cfgPath := flag.Arg(1)
+	if cfgPath == "" {
+		cfgPath = "stratus.json"
+	}
 
 	command, ok := commands[commandString]
 	if !ok {
