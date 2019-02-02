@@ -1,6 +1,8 @@
 package command
 
 import (
+	"github.com/aws/aws-sdk-go/service/cloudformation"
+
 	"github.com/72636c/stratus/internal/config"
 	"github.com/72636c/stratus/internal/context"
 	"github.com/72636c/stratus/internal/stratus"
@@ -23,7 +25,9 @@ func Preview(
 	if describeOutput == nil {
 		output <- "Validate template"
 
-		validateOutput, err := client.ValidateTemplate(ctx, stack)
+		var validateOutput *cloudformation.ValidateTemplateOutput
+
+		validateOutput, err = client.ValidateTemplate(ctx, stack)
 		if err != nil {
 			return nil, err
 		}

@@ -48,7 +48,7 @@ func do(
 
 		output <- stack
 
-		ctx := context.WithOutput(ctx, output)
+		ctx = context.WithOutput(ctx, output)
 
 		return args.command(ctx, args.client, stack)
 	})
