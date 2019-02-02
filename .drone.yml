@@ -1,0 +1,23 @@
+---
+kind: pipeline
+name: default
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: test
+    image: golang:1.11
+    commands:
+      - go test -cover -v ./...
+      - go vet -all -shadow ./...
+    when:
+      event:
+        exclude:
+          - pull_request
+          - tag
+
+---
+kind: signature
+hmac: 698ddb91ac4cdc766f3903c671f0c37ee969bc1aad03a4d18ee43ab5e60e0d39
