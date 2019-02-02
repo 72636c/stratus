@@ -10,20 +10,14 @@ func Deploy(
 	ctx context.Context,
 	client *stratus.Client,
 	stack *config.Stack,
+	diff *stratus.Diff,
 ) error {
 	output := context.Output(ctx)
-
-	diff, err := Preview(ctx, client, stack)
-	if err != nil {
-		return err
-	}
 
 	if diff.HasChangeSet() {
 		output <- "Execute change set"
 
-		name := *diff.ChangeSet.ChangeSetName
-
-		err := client.ExecuteChangeSet(ctx, stack, name)
+		err := client.ExecuteChangeSet(ctx, stack, *diff.ChangeSet.ChangeSetName)
 		if err != nil {
 			return err
 		}
@@ -31,7 +25,7 @@ func Deploy(
 
 	output <- "Set stack policy"
 
-	err = client.SetStackPolicy(ctx, stack)
+	err := client.SetStackPolicy(ctx, stack)
 	if err != nil {
 		return err
 	}
