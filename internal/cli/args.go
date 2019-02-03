@@ -36,25 +36,25 @@ func FromCommandLine() (*Args, error) {
 		return nil, errors.New(usage)
 	}
 
-	output := flag.String("output", "plain", "output format")
+	loggerName := flag.String("output", "plain", "output format")
 
 	flag.Parse()
 
-	logger, ok := loggers[*output]
+	logger, ok := nameToLogger[*loggerName]
 	if !ok {
-		return nil, fmt.Errorf("output '%s' not recognised", *output)
+		return nil, fmt.Errorf("output '%s' not recognised", *loggerName)
 	}
 
-	commandString := flag.Arg(0)
+	commandName := flag.Arg(0)
 
 	cfgPath := flag.Arg(1)
 	if cfgPath == "" {
 		cfgPath = "stratus.json"
 	}
 
-	command, ok := commands[commandString]
+	command, ok := nameToCommand[commandName]
 	if !ok {
-		return nil, fmt.Errorf("command '%s' not recognised", commandString)
+		return nil, fmt.Errorf("command '%s' not recognised", commandName)
 	}
 
 	cfg, err := config.FromPath(cfgPath)

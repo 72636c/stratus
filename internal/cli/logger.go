@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	loggers = map[string]Logger{
+	nameToLogger = map[string]Logger{
 		"color":  ColourLogger,
 		"colour": ColourLogger,
 		"plain":  PlainLogger,
@@ -18,7 +18,7 @@ var (
 	loggerNames = func() string {
 		names := make([]string, 0)
 
-		for name := range loggers {
+		for name := range nameToLogger {
 			names = append(names, name)
 		}
 

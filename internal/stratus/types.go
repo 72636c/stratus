@@ -16,12 +16,12 @@ const (
 )
 
 var (
-	changeSetTypeStrings = map[ChangeSetType]string{
+	changeSetTypeToString = map[ChangeSetType]string{
 		ChangeSetTypeCreate: cloudformation.ChangeSetTypeCreate,
 		ChangeSetTypeUpdate: cloudformation.ChangeSetTypeUpdate,
 	}
 
-	changeSetTypeValues = map[string]ChangeSetType{
+	stringToChangeSetType = map[string]ChangeSetType{
 		cloudformation.ChangeSetTypeCreate: ChangeSetTypeCreate,
 		cloudformation.ChangeSetTypeUpdate: ChangeSetTypeUpdate,
 	}
@@ -30,12 +30,12 @@ var (
 type ChangeSetType int
 
 func ParseChangeSetType(raw string) (changeSetType ChangeSetType, ok bool) {
-	changeSetType, ok = changeSetTypeValues[strings.ToUpper(raw)]
+	changeSetType, ok = stringToChangeSetType[strings.ToUpper(raw)]
 	return
 }
 
 func (changeSetType ChangeSetType) String() string {
-	return changeSetTypeStrings[changeSetType]
+	return changeSetTypeToString[changeSetType]
 }
 
 type Diff struct {

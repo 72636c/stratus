@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	unmarshals = map[string]func([]byte, interface{}) error{
+	extensionToUnmarshal = map[string]func([]byte, interface{}) error{
 		".json": json.Unmarshal,
 		".yaml": yaml.UnmarshalStrict,
 		".yml":  yaml.UnmarshalStrict,
@@ -27,7 +27,7 @@ type Config struct {
 func FromPath(path string) (*Config, error) {
 	extension := strings.ToLower(filepath.Ext(path))
 
-	unmarshal, ok := unmarshals[extension]
+	unmarshal, ok := extensionToUnmarshal[extension]
 	if !ok {
 		return nil, fmt.Errorf("unrecognised config file extension '%s'", extension)
 	}

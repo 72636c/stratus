@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	commands = map[string]Command{
+	nameToCommand = map[string]Command{
 		"delete":  command.Delete,
 		"deploy":  deployAdapter,
 		"preview": previewAdapter,
@@ -19,7 +19,7 @@ var (
 	commandNames = func() string {
 		names := make([]string, 0)
 
-		for name := range commands {
+		for name := range nameToCommand {
 			names = append(names, name)
 		}
 
