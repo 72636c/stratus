@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
-Description: Stratus External JSON Sample
+Description: Stratus External YAML Sample
 
 Resources:
   SampleParameter:

@@ -5,17 +5,33 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/awsutil"
+	"gopkg.in/yaml.v2"
+)
+
+var (
+	unmarshals = map[string]func([]byte, interface{}) error{
+		".json": json.Unmarshal,
+		".yaml": yaml.UnmarshalStrict,
+		".yml":  yaml.UnmarshalStrict,
+	}
 )
 
 type Config struct {
 	Stacks []*Stack
 }
 
-func FromJSON(
-	path string,
-) (*Config, error) {
+func FromPath(path string) (*Config, error) {
+	extension := strings.ToLower(filepath.Ext(path))
+
+	unmarshal, ok := unmarshals[extension]
+	if !ok {
+		return nil, fmt.Errorf("unrecognised config file extension '%s'", extension)
+	}
+
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -25,7 +41,7 @@ func FromJSON(
 
 	var raw *RawConfig
 
-	err = json.Unmarshal(data, &raw)
+	err = unmarshal(data, &raw)
 	if err != nil {
 		return nil, err
 	}

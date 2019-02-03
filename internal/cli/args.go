@@ -57,7 +57,7 @@ func FromCommandLine() (*Args, error) {
 		return nil, fmt.Errorf("command '%s' not recognised", commandString)
 	}
 
-	cfg, err := config.FromJSON(cfgPath)
+	cfg, err := config.FromPath(cfgPath)
 	if err != nil {
 		return nil, err
 	}
