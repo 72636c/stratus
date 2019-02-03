@@ -1,0 +1,9 @@
+stacks:
+  - name: stratus-sample-external-yaml
+
+    capabilities: []
+    parameters: []
+    terminationProtection: false
+
+    policyFile: ./policy.json
+    templateFile: ./template.yaml

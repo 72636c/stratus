@@ -10,8 +10,8 @@ type RawStack struct {
 	Capabilities          []string        `json:"capabilities"`
 	Parameters            StackParameters `json:"parameters"`
 	Tags                  StackTags       `json:"tags"`
-	TerminationProtection *bool           `json:"terminationProtection"`
+	TerminationProtection *bool           `json:"terminationProtection" yaml:"terminationProtection"`
 
-	PolicyFile   *string `json:"policyFile"`
-	TemplateFile *string `json:"templateFile"`
+	PolicyFile   *string `json:"policyFile" yaml:"policyFile"`
+	TemplateFile *string `json:"templateFile" yaml:"templateFile"`
 }
