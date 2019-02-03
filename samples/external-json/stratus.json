@@ -1,7 +1,7 @@
 {
   "stacks": [
     {
-      "name": "stratus-sample-inline",
+      "name": "stratus-sample-external-json",
 
       "capabilities": [],
       "parameters": [],
