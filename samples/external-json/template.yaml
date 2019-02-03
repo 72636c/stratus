@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
-Description: Stratus Inline Sample
+Description: Stratus External JSON Sample
 
 Resources:
   SampleParameter:
