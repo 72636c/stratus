@@ -9,12 +9,16 @@ import (
 )
 
 func main() {
-	args, err := cli.FromCommandLine()
+	app, err := cli.New()
 	check(err)
+
+	if app == nil {
+		return
+	}
 
 	ctx := context.Background()
 
-	err = cli.Do(ctx, args)
+	err = app.Do(ctx)
 	check(err)
 }
 
