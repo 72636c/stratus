@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"net/http"
@@ -18,13 +17,26 @@ import (
 	"github.com/72636c/stratus/internal/stratus"
 )
 
-var (
-	usage = fmt.Sprintf(
-		"usage: stratus [-output %s] %s [stratus.json]",
-		loggerNames,
-		commandNames,
-	)
+const (
+	usageFormat = `usage: stratus [options] %[1]s
+
+[options]
+--file path%[2]cto%[2]cstratus.json|yaml (default .%[2]cstratus.yaml)
+--output %[3]s (default plain)
+`
 )
+
+func init() {
+	flag.Usage = func() {
+		fmt.Fprintf(
+			flag.CommandLine.Output(),
+			usageFormat,
+			commandNames,
+			os.PathSeparator,
+			loggerNames,
+		)
+	}
+}
 
 type App struct {
 	cfg     *config.Config
@@ -33,11 +45,14 @@ type App struct {
 	logger  Logger
 }
 
-func New() (*App, error) {
-	if len(os.Args) < 2 {
-		return nil, errors.New(usage)
-	}
+func New() (_ *App, err error) {
+	defer func() {
+		if err != nil {
+			flag.Usage()
+		}
+	}()
 
+	cfgPath := flag.String("file", "stratus.yaml", "config file")
 	loggerName := flag.String("output", "plain", "output format")
 
 	flag.Parse()
@@ -49,17 +64,12 @@ func New() (*App, error) {
 
 	commandName := flag.Arg(0)
 
-	cfgPath := flag.Arg(1)
-	if cfgPath == "" {
-		cfgPath = "stratus.json"
-	}
-
 	command, ok := nameToCommand[commandName]
 	if !ok {
 		return nil, fmt.Errorf("command '%s' not recognised", commandName)
 	}
 
-	cfg, err := config.FromPath(cfgPath)
+	cfg, err := config.FromPath(*cfgPath)
 	if err != nil {
 		return nil, err
 	}

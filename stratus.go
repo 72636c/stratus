@@ -12,6 +12,10 @@ func main() {
 	app, err := cli.New()
 	check(err)
 
+	if app == nil {
+		return
+	}
+
 	ctx := context.Background()
 
 	err = app.Do(ctx)
