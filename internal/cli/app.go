@@ -11,8 +11,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/72636c/stratus/internal/config"
+	"github.com/72636c/stratus/internal/context"
 	"github.com/72636c/stratus/internal/stratus"
 )
 
@@ -24,14 +26,14 @@ var (
 	)
 )
 
-type Args struct {
+type App struct {
 	cfg     *config.Config
 	client  *stratus.Client
 	command Command
 	logger  Logger
 }
 
-func FromCommandLine() (*Args, error) {
+func New() (*App, error) {
 	if len(os.Args) < 2 {
 		return nil, errors.New(usage)
 	}
@@ -75,12 +77,71 @@ func FromCommandLine() (*Args, error) {
 
 	client := stratus.NewClient(cloudFormation)
 
-	args := &Args{
+	app := &App{
 		cfg:     cfg,
 		client:  client,
 		command: command,
 		logger:  logger,
 	}
 
-	return args, nil
+	return app, nil
+}
+
+func (app *App) Do(ctx context.Context) error {
+	for index := 0; index < len(app.cfg.Stacks); index++ {
+		err := app.do(ctx, index)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (app *App) do(ctx context.Context, index int) error {
+	stack := app.cfg.Stacks[index]
+
+	group, ctx := errgroup.WithContext(ctx)
+
+	output := make(chan interface{})
+
+	group.Go(func() (err error) {
+		defer func() {
+			recovered := recover()
+			if recovered != nil {
+				err = fmt.Errorf("recovered from panic: %+v", recovered)
+			}
+		}()
+
+		defer close(output)
+
+		output <- fmt.Sprintf("Stratus.[%d].StackConfig", index)
+
+		output <- stack
+
+		ctx = context.WithOutput(ctx, output)
+
+		return app.command(ctx, app.client, stack)
+	})
+
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	group.Go(func() error {
+		for {
+			select {
+			case <-ticker.C:
+				fmt.Printf(".")
+
+			case message, ok := <-output:
+				app.logger(message, ok)
+
+				if !ok {
+					return nil
+				}
+			}
+		}
+	})
+
+	return group.Wait()
 }
