@@ -147,6 +147,8 @@ func (bit *Bool) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	resolved = strings.Replace(resolved, `"`, "", -1)
+
 	return json.Unmarshal([]byte(resolved), (*alias)(bit))
 }
 
@@ -163,6 +165,8 @@ func (bit *Bool) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err != nil {
 		return err
 	}
+
+	resolved = strings.Replace(resolved, `"`, "", -1)
 
 	return yaml.UnmarshalStrict([]byte(resolved), (*alias)(bit))
 }
