@@ -2,22 +2,12 @@ package config
 
 import (
 	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/awsutil"
-	"gopkg.in/yaml.v2"
-)
-
-var (
-	extensionToUnmarshal = map[string]func([]byte, interface{}) error{
-		".json": json.Unmarshal,
-		".yaml": yaml.UnmarshalStrict,
-		".yml":  yaml.UnmarshalStrict,
-	}
 )
 
 type Config struct {
@@ -26,11 +16,6 @@ type Config struct {
 
 func FromPath(path string) (*Config, error) {
 	extension := strings.ToLower(filepath.Ext(path))
-
-	unmarshal, ok := extensionToUnmarshal[extension]
-	if !ok {
-		return nil, fmt.Errorf("unrecognised config file extension '%s'", extension)
-	}
 
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -41,7 +26,7 @@ func FromPath(path string) (*Config, error) {
 
 	var raw *RawConfig
 
-	err = unmarshal(data, &raw)
+	err = Unmarshal(extension, data, &raw)
 	if err != nil {
 		return nil, err
 	}
