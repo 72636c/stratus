@@ -27,3 +27,17 @@ stratus delete
 == Config
 
 link:/samples[`/samples`]
+
+A YAML config file looks like:
+
+```yaml
+stacks:
+  - name: stratus-sample-{{env:ENVIRONMENT}}
+
+    capabilities: []
+    parameters: []
+    terminationProtection: '{{env:TERMINATION_PROTECTION}}'
+
+    policyFile: ./policy.json
+    templateFile: ./template.yaml
+```
