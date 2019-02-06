@@ -72,8 +72,8 @@ func fromRawStack(
 		Name: *raw.Name,
 
 		Capabilities:          raw.Capabilities,
-		Parameters:            raw.Parameters,
-		Tags:                  raw.Tags,
+		Parameters:            fromRawStackParameters(raw.Parameters),
+		Tags:                  fromRawStackTags(raw.Tags),
 		TerminationProtection: *raw.TerminationProtection,
 
 		Policy:   policy,
@@ -83,4 +83,30 @@ func fromRawStack(
 	}
 
 	return stack, nil
+}
+
+func fromRawStackParameters(
+	raw RawStackParameters,
+) StackParameters {
+	slice := make(StackParameters, len(raw))
+
+	for index, rawParameter := range raw {
+		parameter := StackParameter(*rawParameter)
+		slice[index] = &parameter
+	}
+
+	return slice
+}
+
+func fromRawStackTags(
+	raw RawStackTags,
+) StackTags {
+	slice := make(StackTags, len(raw))
+
+	for index, rawTag := range raw {
+		tag := StackTag(*rawTag)
+		slice[index] = &tag
+	}
+
+	return slice
 }
