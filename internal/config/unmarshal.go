@@ -3,6 +3,8 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -14,10 +16,21 @@ var (
 		".yml":  yaml.UnmarshalStrict,
 	}
 
-	prefixToMapper = map[string]Mapper{}
+	prefixToMapper = map[string]Mapper{
+		"env": envMapper,
+	}
 )
 
-type Mapper func(placeholder string, dest interface{}) error
+type Mapper func(placeholder string) (string, error)
+
+func envMapper(placeholder string) (string, error) {
+	resolved, ok := os.LookupEnv(placeholder)
+	if !ok {
+		return "", fmt.Errorf("environment variable '%s' not set", placeholder)
+	}
+
+	return resolved, nil
+}
 
 func Unmarshal(extension string, data []byte, dest interface{}) error {
 	unmarshal, ok := extensionToUnmarshal[extension]
@@ -25,15 +38,99 @@ func Unmarshal(extension string, data []byte, dest interface{}) error {
 		return fmt.Errorf("unrecognised file extension '%s'", extension)
 	}
 
-	// TODO: initialise prefixToMapper?
-
 	return unmarshal(data, dest)
 }
 
-func resolve(data string) (string, error) {
-	// TODO: resolve placeholders
+type ResolveStack []*strings.Builder
 
-	return data, nil
+func NewResolveStack() ResolveStack {
+	return ResolveStack{new(strings.Builder)}
+}
+
+func (stack ResolveStack) Peek() *strings.Builder {
+	return stack[len(stack)-1]
+}
+
+func (stack ResolveStack) Pop() (ResolveStack, string) {
+	item := stack.Peek().String()
+	return stack[:len(stack)-1], item
+}
+
+func (stack ResolveStack) Push() ResolveStack {
+	return append(stack, new(strings.Builder))
+}
+
+func (stack ResolveStack) String() string {
+	var builder strings.Builder
+
+	for len(stack) > 0 {
+		var str string
+		stack, str = stack.Pop()
+		builder.WriteString(str)
+	}
+
+	return builder.String()
+}
+
+func Resolve(data string) (string, error) {
+	skip := false
+	stack := NewResolveStack()
+
+	for index, token := range data {
+		if skip {
+			skip = false
+			continue
+		}
+
+		switch token {
+		case '{':
+			if index+1 == len(data) || data[index+1] != '{' {
+				stack.Peek().WriteRune('{')
+				continue
+			}
+
+			stack = stack.Push()
+
+			skip = true
+
+		case '}':
+			if index+1 == len(data) || data[index+1] != '}' {
+				stack.Peek().WriteRune('}')
+				continue
+			}
+
+			var str string
+
+			stack, str = stack.Pop()
+
+			slice := strings.SplitN(str, ":", 2)
+			if len(slice) < 2 {
+				return "", fmt.Errorf("malformed placeholder '%s'", str)
+			}
+
+			prefix := slice[0]
+			suffix := slice[1]
+
+			mapper, ok := prefixToMapper[prefix]
+			if !ok {
+				return "", fmt.Errorf("unrecognised placeholder '%s'", str)
+			}
+
+			resolved, err := mapper(suffix)
+			if err != nil {
+				return "", err
+			}
+
+			stack.Peek().WriteString(resolved)
+
+			skip = true
+
+		default:
+			stack.Peek().WriteRune(token)
+		}
+	}
+
+	return stack.String(), nil
 }
 
 type Bool bool
@@ -45,7 +142,7 @@ func (bit *Bool) Bool() bool {
 func (bit *Bool) UnmarshalJSON(data []byte) error {
 	type alias Bool
 
-	resolved, err := resolve(string(data))
+	resolved, err := Resolve(string(data))
 	if err != nil {
 		return err
 	}
@@ -62,7 +159,7 @@ func (bit *Bool) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 
-	resolved, err := resolve(data)
+	resolved, err := Resolve(data)
 	if err != nil {
 		return err
 	}
@@ -79,7 +176,7 @@ func (str *String) String() string {
 func (str *String) UnmarshalJSON(data []byte) error {
 	type alias String
 
-	resolved, err := resolve(string(data))
+	resolved, err := Resolve(string(data))
 	if err != nil {
 		return err
 	}
@@ -96,7 +193,7 @@ func (str *String) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 
-	resolved, err := resolve(data)
+	resolved, err := Resolve(data)
 	if err != nil {
 		return err
 	}
