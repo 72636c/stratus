@@ -56,19 +56,16 @@ func Test_Resolve(t *testing.T) {
 		{
 			description:   "environment variable not set",
 			input:         "{{env:UNSET_1}}",
-			expected:      "",
 			expectedError: "not set",
 		},
 		{
 			description:   "malformed placeholder",
 			input:         "{{env_UNSET_1}}",
-			expected:      "",
 			expectedError: "malformed placeholder",
 		},
 		{
 			description:   "unsupported placeholder",
 			input:         "{{gcp:SET_1}}",
-			expected:      "",
 			expectedError: "unsupported placeholder",
 		},
 	}
@@ -79,8 +76,8 @@ func Test_Resolve(t *testing.T) {
 			require := require.New(t)
 
 			actual, err := config.Resolve(testCase.input)
-			assert.Equal(testCase.expected, actual)
 			if testCase.expectedError == "" {
+				assert.Equal(testCase.expected, actual)
 				assert.NoError(err)
 			} else {
 				require.Error(err)
@@ -142,10 +139,21 @@ func Test_Unmarshal(t *testing.T) {
 			},
 		},
 		{
+			description:   "invalid JSON bool",
+			input:         `{"Bool": "tr\"ue", "String": "hello"}`,
+			extension:     ".json",
+			expectedError: "invalid character",
+		},
+		{
+			description:   "invalid YAML bool",
+			input:         "bool: y\"e\"s\nstring: hello",
+			extension:     ".yaml",
+			expectedError: "cannot unmarshal",
+		},
+		{
 			description:   "unsupported file extension",
 			input:         "",
 			extension:     ".xml",
-			expected:      nil,
 			expectedError: "unsupported file extension",
 		},
 	}
@@ -158,8 +166,8 @@ func Test_Unmarshal(t *testing.T) {
 			var data *Data
 
 			err := config.Unmarshal(testCase.extension, []byte(testCase.input), &data)
-			assert.Equal(testCase.expected, data)
 			if testCase.expectedError == "" {
+				assert.Equal(testCase.expected, data)
 				assert.NoError(err)
 			} else {
 				require.Error(err)
