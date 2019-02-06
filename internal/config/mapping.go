@@ -47,7 +47,10 @@ func fromRawStack(
 	checksum string,
 	relativePath string,
 ) (*Stack, error) {
-	policyPath := filepath.Join(filepath.Dir(relativePath), *raw.PolicyFile)
+	policyPath := filepath.Join(
+		filepath.Dir(relativePath),
+		raw.PolicyFile.String(),
+	)
 
 	policyData, err := ioutil.ReadFile(policyPath)
 	if err != nil {
@@ -61,7 +64,10 @@ func fromRawStack(
 		return nil, err
 	}
 
-	templatePath := filepath.Join(filepath.Dir(relativePath), *raw.TemplateFile)
+	templatePath := filepath.Join(
+		filepath.Dir(relativePath),
+		raw.TemplateFile.String(),
+	)
 
 	template, err := ioutil.ReadFile(templatePath)
 	if err != nil {
@@ -69,12 +75,12 @@ func fromRawStack(
 	}
 
 	stack := &Stack{
-		Name: *raw.Name,
+		Name: raw.Name.String(),
 
-		Capabilities:          raw.Capabilities,
+		Capabilities:          fromRawStackCapabilities(raw.Capabilities),
 		Parameters:            fromRawStackParameters(raw.Parameters),
 		Tags:                  fromRawStackTags(raw.Tags),
-		TerminationProtection: *raw.TerminationProtection,
+		TerminationProtection: raw.TerminationProtection.Bool(),
 
 		Policy:   policy,
 		Template: template,
@@ -85,27 +91,37 @@ func fromRawStack(
 	return stack, nil
 }
 
-func fromRawStackParameters(
-	raw RawStackParameters,
-) StackParameters {
-	slice := make(StackParameters, len(raw))
+func fromRawStackCapabilities(raw RawStackCapabilities) []string {
+	slice := make([]string, len(raw))
 
-	for index, rawParameter := range raw {
-		parameter := StackParameter(*rawParameter)
-		slice[index] = &parameter
+	for index, rawCapability := range raw {
+		slice[index] = rawCapability.String()
 	}
 
 	return slice
 }
 
-func fromRawStackTags(
-	raw RawStackTags,
-) StackTags {
+func fromRawStackParameters(raw RawStackParameters) StackParameters {
+	slice := make(StackParameters, len(raw))
+
+	for index, rawParameter := range raw {
+		slice[index] = &StackParameter{
+			Key:   rawParameter.Key.String(),
+			Value: rawParameter.Value.String(),
+		}
+	}
+
+	return slice
+}
+
+func fromRawStackTags(raw RawStackTags) StackTags {
 	slice := make(StackTags, len(raw))
 
 	for index, rawTag := range raw {
-		tag := StackTag(*rawTag)
-		slice[index] = &tag
+		slice[index] = &StackTag{
+			Key:   rawTag.Key.String(),
+			Value: rawTag.Value.String(),
+		}
 	}
 
 	return slice

@@ -5,27 +5,29 @@ type RawConfig struct {
 }
 
 type RawStack struct {
-	Name *string `json:"name"`
+	Name String `json:"name"`
 
-	Capabilities          []string           `json:"capabilities"`
-	Parameters            RawStackParameters `json:"parameters"`
-	Tags                  RawStackTags       `json:"tags"`
-	TerminationProtection *bool              `json:"terminationProtection" yaml:"terminationProtection"`
+	Capabilities          RawStackCapabilities `json:"capabilities"`
+	Parameters            RawStackParameters   `json:"parameters"`
+	Tags                  RawStackTags         `json:"tags"`
+	TerminationProtection Bool                 `json:"terminationProtection" yaml:"terminationProtection"`
 
-	PolicyFile   *string `json:"policyFile" yaml:"policyFile"`
-	TemplateFile *string `json:"templateFile" yaml:"templateFile"`
+	PolicyFile   String `json:"policyFile" yaml:"policyFile"`
+	TemplateFile String `json:"templateFile" yaml:"templateFile"`
 }
+
+type RawStackCapabilities []String
 
 type RawStackParameters []*RawStackParameter
 
 type RawStackParameter struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	Key   String `json:"key"`
+	Value String `json:"value"`
 }
 
 type RawStackTags []*RawStackTag
 
 type RawStackTag struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	Key   String `json:"key"`
+	Value String `json:"value"`
 }
