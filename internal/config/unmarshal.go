@@ -35,7 +35,7 @@ func envMapper(placeholder string) (string, error) {
 func Unmarshal(extension string, data []byte, dest interface{}) error {
 	unmarshal, ok := extensionToUnmarshal[extension]
 	if !ok {
-		return fmt.Errorf("unrecognised file extension '%s'", extension)
+		return fmt.Errorf("unsupported file extension '%s'", extension)
 	}
 
 	return unmarshal(data, dest)
@@ -65,7 +65,9 @@ func (stack ResolveStack) String() string {
 
 	for len(stack) > 0 {
 		var str string
+
 		stack, str = stack.Pop()
+
 		builder.WriteString(str)
 	}
 
@@ -86,6 +88,7 @@ func Resolve(data string) (string, error) {
 		case '{':
 			if index+1 == len(data) || data[index+1] != '{' {
 				stack.Peek().WriteRune('{')
+
 				continue
 			}
 
@@ -96,6 +99,7 @@ func Resolve(data string) (string, error) {
 		case '}':
 			if index+1 == len(data) || data[index+1] != '}' {
 				stack.Peek().WriteRune('}')
+
 				continue
 			}
 
@@ -113,7 +117,7 @@ func Resolve(data string) (string, error) {
 
 			mapper, ok := prefixToMapper[prefix]
 			if !ok {
-				return "", fmt.Errorf("unrecognised placeholder '%s'", str)
+				return "", fmt.Errorf("unsupported placeholder '%s'", str)
 			}
 
 			resolved, err := mapper(suffix)
@@ -156,6 +160,7 @@ func (bit *Bool) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type alias Bool
 
 	var data string
+
 	err := unmarshal(&data)
 	if err != nil {
 		return err
@@ -192,6 +197,7 @@ func (str *String) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type alias String
 
 	var data string
+
 	err := unmarshal(&data)
 	if err != nil {
 		return err

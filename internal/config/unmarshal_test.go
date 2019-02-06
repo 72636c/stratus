@@ -66,10 +66,10 @@ func Test_Resolve(t *testing.T) {
 			expectedError: "malformed placeholder",
 		},
 		{
-			description:   "unhandled placeholder",
+			description:   "unsupported placeholder",
 			input:         "{{gcp:SET_1}}",
 			expected:      "",
-			expectedError: "unrecognised placeholder",
+			expectedError: "unsupported placeholder",
 		},
 	}
 
@@ -90,10 +90,10 @@ func Test_Resolve(t *testing.T) {
 	}
 }
 
-func Test_Unmarshal_JSON(t *testing.T) {
+func Test_Unmarshal(t *testing.T) {
 	os.Setenv("SET_1", "true")
 
-	type Thing struct {
+	type Data struct {
 		Bool   config.Bool
 		String config.String
 	}
@@ -101,75 +101,52 @@ func Test_Unmarshal_JSON(t *testing.T) {
 	testCases := []struct {
 		description   string
 		input         string
-		expected      *Thing
+		extension     string
+		expected      *Data
 		expectedError string
 	}{
 		{
-			description: "literals",
+			description: "JSON literals",
 			input:       `{"Bool": true, "String": "hello"}`,
-			expected: &Thing{
-				Bool:   config.Bool(true),
+			extension:   ".json",
+			expected: &Data{
+				Bool:   true,
 				String: "hello",
 			},
 		},
 		{
-			description: "placeholders",
+			description: "JSON placeholders",
 			input:       `{"Bool": "{{env:SET_1}}", "String": "{{env:SET_1}}"}`,
-			expected: &Thing{
-				Bool:   config.Bool(true),
+			extension:   ".json",
+			expected: &Data{
+				Bool:   true,
 				String: "true",
 			},
 		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.description, func(t *testing.T) {
-			assert := assert.New(t)
-			require := require.New(t)
-
-			var thing *Thing
-
-			err := config.Unmarshal(".json", []byte(testCase.input), &thing)
-			assert.Equal(testCase.expected, thing)
-			if testCase.expectedError == "" {
-				assert.NoError(err)
-			} else {
-				require.Error(err)
-				assert.Contains(err.Error(), testCase.expectedError)
-			}
-		})
-	}
-}
-
-func Test_Unmarshal_YAML(t *testing.T) {
-	os.Setenv("SET_1", "on")
-
-	type Thing struct {
-		Bool   config.Bool
-		String config.String
-	}
-
-	testCases := []struct {
-		description   string
-		input         string
-		expected      *Thing
-		expectedError string
-	}{
 		{
-			description: "literals",
+			description: "YAML literals",
 			input:       "bool: yes\nstring: hello",
-			expected: &Thing{
-				Bool:   config.Bool(true),
+			extension:   ".yaml",
+			expected: &Data{
+				Bool:   true,
 				String: "hello",
 			},
 		},
 		{
-			description: "placeholders",
+			description: "YAML placeholders",
 			input:       "bool: '{{env:SET_1}}'\nstring: '{{env:SET_1}}'",
-			expected: &Thing{
-				Bool:   config.Bool(true),
-				String: "on",
+			extension:   ".yaml",
+			expected: &Data{
+				Bool:   true,
+				String: "true",
 			},
+		},
+		{
+			description:   "unsupported file extension",
+			input:         "",
+			extension:     ".xml",
+			expected:      nil,
+			expectedError: "unsupported file extension",
 		},
 	}
 
@@ -178,10 +155,10 @@ func Test_Unmarshal_YAML(t *testing.T) {
 			assert := assert.New(t)
 			require := require.New(t)
 
-			var thing *Thing
+			var data *Data
 
-			err := config.Unmarshal(".yaml", []byte(testCase.input), &thing)
-			assert.Equal(testCase.expected, thing)
+			err := config.Unmarshal(testCase.extension, []byte(testCase.input), &data)
+			assert.Equal(testCase.expected, data)
 			if testCase.expectedError == "" {
 				assert.NoError(err)
 			} else {
