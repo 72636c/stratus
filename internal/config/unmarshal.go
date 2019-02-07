@@ -32,13 +32,13 @@ func envMapper(placeholder string) (string, error) {
 	return resolved, nil
 }
 
-func Unmarshal(extension string, data []byte, dest interface{}) error {
+func Unmarshal(extension string, data []byte, model interface{}) error {
 	unmarshal, ok := extensionToUnmarshal[extension]
 	if !ok {
 		return fmt.Errorf("unsupported file extension '%s'", extension)
 	}
 
-	return unmarshal(data, dest)
+	return unmarshal(data, model)
 }
 
 type ResolveStack []*strings.Builder

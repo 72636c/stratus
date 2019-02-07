@@ -20,8 +20,8 @@ var (
 	mockStackPolicyBody = mustMarshal(mockStackPolicy)
 )
 
-func mustMarshal(value interface{}) []byte {
-	data, err := json.Marshal(value)
+func mustMarshal(model interface{}) []byte {
+	data, err := json.Marshal(model)
 	if err != nil {
 		panic(fmt.Errorf("mustMarshal: %+v", err))
 	}
