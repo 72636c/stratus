@@ -144,7 +144,7 @@ func (bit *Bool) Bool() bool {
 }
 
 func (bit *Bool) UnmarshalJSON(data []byte) error {
-	type alias Bool
+	type boolAlias Bool
 
 	resolved, err := Resolve(string(data))
 	if err != nil {
@@ -153,7 +153,7 @@ func (bit *Bool) UnmarshalJSON(data []byte) error {
 
 	resolved = strings.Trim(resolved, `"`)
 
-	return json.Unmarshal([]byte(resolved), (*alias)(bit))
+	return json.Unmarshal([]byte(resolved), (*boolAlias)(bit))
 }
 
 func (bit *Bool) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -183,14 +183,14 @@ func (str *String) String() string {
 }
 
 func (str *String) UnmarshalJSON(data []byte) error {
-	type alias String
+	type stringAlias String
 
 	resolved, err := Resolve(string(data))
 	if err != nil {
 		return err
 	}
 
-	return json.Unmarshal([]byte(resolved), (*alias)(str))
+	return json.Unmarshal([]byte(resolved), (*stringAlias)(str))
 }
 
 func (str *String) UnmarshalYAML(unmarshal func(interface{}) error) error {
