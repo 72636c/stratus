@@ -10,6 +10,10 @@ import (
 	"github.com/72636c/stratus/internal/config"
 )
 
+func init() {
+	config.Init(nil)
+}
+
 func Test_Resolve(t *testing.T) {
 	os.Setenv("SET_1", "serious")
 	os.Setenv("SET_2", "prod")

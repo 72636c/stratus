@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"gopkg.in/yaml.v2"
 )
 
@@ -16,9 +20,8 @@ var (
 		".yml":  yaml.UnmarshalStrict,
 	}
 
-	prefixToMapper = map[string]Mapper{
-		"env": envMapper,
-	}
+	prefixToMapper      = make(map[string]Mapper)
+	prefixToMapperMutex sync.Mutex
 )
 
 type Mapper func(placeholder string) (string, error)
@@ -32,7 +35,49 @@ func envMapper(placeholder string) (string, error) {
 	return resolved, nil
 }
 
-func Unmarshal(extension string, data []byte, model interface{}) error {
+func newAWSMapper(provider client.ConfigProvider) Mapper {
+	client := ssm.New(provider)
+
+	return func(placeholder string) (string, error) {
+		if !strings.HasPrefix(placeholder, "ssm:parameter:") {
+			return "", fmt.Errorf("unsupported AWS placeholder '%s'", placeholder)
+		}
+
+		name := strings.TrimPrefix(placeholder, "ssm:parameter:")
+
+		input := &ssm.GetParameterInput{
+			Name:           aws.String(name),
+			WithDecryption: aws.Bool(false),
+		}
+
+		output, err := client.GetParameter(input)
+		if err != nil {
+			return "", err
+		}
+
+		return *output.Parameter.Value, nil
+	}
+}
+
+func Init(provider client.ConfigProvider) {
+	prefixToMapperMutex.Lock()
+
+	prefixToMapper = map[string]Mapper{
+		"env": envMapper,
+	}
+
+	if provider != nil {
+		prefixToMapper["aws"] = newAWSMapper(provider)
+	}
+
+	prefixToMapperMutex.Unlock()
+}
+
+func Unmarshal(
+	extension string,
+	data []byte,
+	model interface{},
+) error {
 	unmarshal, ok := extensionToUnmarshal[extension]
 	if !ok {
 		return fmt.Errorf("unsupported file extension '%s'", extension)
