@@ -40,8 +40,9 @@ type Stack struct {
 	Tags                  StackTags
 	TerminationProtection bool
 
-	Policy   interface{}
-	Template []byte
+	Policy          interface{}
+	Template        []byte
+	UploadArtefacts string
 
 	Checksum string `json:"-"`
 }
