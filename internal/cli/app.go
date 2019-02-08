@@ -69,11 +69,6 @@ func New() (_ *App, err error) {
 		return nil, fmt.Errorf("command '%s' not recognised", commandName)
 	}
 
-	cfg, err := config.FromPath(*cfgPath)
-	if err != nil {
-		return nil, err
-	}
-
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
 	awsConfig := aws.NewConfig().WithHTTPClient(httpClient)
@@ -86,6 +81,13 @@ func New() (_ *App, err error) {
 	cloudFormation := cloudformation.New(provider)
 
 	client := stratus.NewClient(cloudFormation)
+
+	config.Init(provider)
+
+	cfg, err := config.FromPath(*cfgPath)
+	if err != nil {
+		return nil, err
+	}
 
 	app := &App{
 		cfg:     cfg,
