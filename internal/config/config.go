@@ -43,7 +43,7 @@ type Stack struct {
 	Policy   interface{}
 	Template []byte
 
-	Checksum string
+	Checksum string `json:"-"`
 }
 
 func (stack *Stack) String() string {

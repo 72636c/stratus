@@ -1,26 +1,13 @@
 package config
 
 import (
-	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"path/filepath"
 )
 
-func fromRawConfig(
-	raw *RawConfig,
-	relativePath string,
-) (*Config, error) {
-	data, err := json.Marshal(raw)
-	if err != nil {
-		return nil, err
-	}
-
-	// FIXME: this does not account for external files
-	checksum := fmt.Sprintf("%x", sha256.Sum256(data))
-
-	stacks, err := fromRawStacks(raw.Stacks, checksum, relativePath)
+func fromRawConfig(raw *RawConfig, path string) (*Config, error) {
+	stacks, err := fromRawStacks(raw.Stacks, path)
 	if err != nil {
 		return nil, err
 	}
@@ -32,17 +19,13 @@ func fromRawConfig(
 	return config, nil
 }
 
-func fromRawStacks(
-	raw []*RawStack,
-	checksum string,
-	relativePath string,
-) ([]*Stack, error) {
+func fromRawStacks(raw []*RawStack, path string) ([]*Stack, error) {
 	slice := make([]*Stack, len(raw))
 
 	for index, stack := range raw {
 		var err error
 
-		slice[index], err = fromRawStack(stack, checksum, relativePath)
+		slice[index], err = fromRawStack(stack, path)
 		if err != nil {
 			return nil, err
 		}
@@ -51,13 +34,9 @@ func fromRawStacks(
 	return slice, nil
 }
 
-func fromRawStack(
-	raw *RawStack,
-	checksum string,
-	relativePath string,
-) (*Stack, error) {
+func fromRawStack(raw *RawStack, path string) (*Stack, error) {
 	policyPath := filepath.Join(
-		filepath.Dir(relativePath),
+		filepath.Dir(path),
 		raw.PolicyFile.String(),
 	)
 
@@ -74,7 +53,7 @@ func fromRawStack(
 	}
 
 	templatePath := filepath.Join(
-		filepath.Dir(relativePath),
+		filepath.Dir(path),
 		raw.TemplateFile.String(),
 	)
 
@@ -93,9 +72,14 @@ func fromRawStack(
 
 		Policy:   policy,
 		Template: template,
-
-		Checksum: checksum,
 	}
+
+	checksum, err := CalculateChecksum(stack)
+	if err != nil {
+		return nil, err
+	}
+
+	stack.Checksum = checksum
 
 	return stack, nil
 }
