@@ -1,8 +1,6 @@
 package config
 
 import (
-	"crypto/sha256"
-	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -22,8 +20,6 @@ func FromPath(path string) (*Config, error) {
 		return nil, err
 	}
 
-	checksum := fmt.Sprintf("%x", sha256.Sum256(data))
-
 	var raw *RawConfig
 
 	err = Unmarshal(extension, data, &raw)
@@ -33,7 +29,7 @@ func FromPath(path string) (*Config, error) {
 
 	// TODO: validate config
 
-	return fromRawConfig(raw, checksum, path)
+	return fromRawConfig(raw, path)
 }
 
 type Stack struct {
@@ -47,7 +43,7 @@ type Stack struct {
 	Policy   interface{}
 	Template []byte
 
-	Checksum string
+	Checksum string `json:"-"`
 }
 
 func (stack *Stack) String() string {
