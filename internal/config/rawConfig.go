@@ -6,7 +6,7 @@ type RawConfig struct {
 }
 
 type RawDefaults struct {
-	UploadArtefacts String `json:"uploadArtefacts" yaml:"uploadArtefacts"`
+	ArtefactBucket String `json:"artefactBucket" yaml:"artefactBucket"`
 }
 
 type RawStack struct {

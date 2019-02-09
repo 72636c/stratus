@@ -70,7 +70,7 @@ func fromRawStack(
 		Policy:   policy,
 		Template: template,
 
-		ArtefactBucket: rawConfig.Defaults.UploadArtefacts.String(),
+		ArtefactBucket: rawConfig.Defaults.ArtefactBucket.String(),
 	}
 
 	checksum, err := CalculateChecksum(stack)

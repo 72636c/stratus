@@ -1,5 +1,5 @@
 defaults:
-  uploadArtefacts: sample-bucket-name
+  artefactBucket: sample-bucket-name
 
 stacks:
   - name: stratus-sample-external-yaml
