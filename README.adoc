@@ -6,21 +6,14 @@ Simple layer for managing CloudFormation stacks in CI/CD.
 
 == Commands
 
-Preview change set:
-
 ```shell
+# preview change set
 stratus preview
-```
 
-Deploy change set:
-
-```shell
+# deploy change set
 stratus deploy
-```
 
-Delete stack:
-
-```shell
+# delete stack
 stratus delete
 ```
 
@@ -43,4 +36,28 @@ stacks:
 
     policyFile: ./policy.json
     templateFile: ./template.yaml
+```
+
+== Docker
+
+```shell
+docker build  \
+--tag stratus \
+.
+
+# linux, macOS
+docker run      \
+--env-file .env \
+--rm            \
+--volume .:/tmp \
+--workdir /tmp  \
+stratus preview
+
+# windows
+docker run           \
+--env-file .env      \
+--rm                 \
+--volume ${pwd}:/tmp \
+--workdir /tmp       \
+stratus preview
 ```
