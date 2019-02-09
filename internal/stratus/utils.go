@@ -18,7 +18,7 @@ var (
 	changeSetRegexp = regexp.MustCompile(`stratus-(create|update)-[0-9a-f]{64}`)
 )
 
-func matchesChangeSetSummary(
+func MatchesChangeSetSummary(
 	stack *config.Stack,
 	summary *cloudformation.ChangeSetSummary,
 ) bool {
@@ -27,12 +27,6 @@ func matchesChangeSetSummary(
 		*summary.ExecutionStatus == cloudformation.ExecutionStatusAvailable &&
 		summary.ChangeSetName != nil &&
 		matchesChangeSetName(stack.Checksum, *summary.ChangeSetName)
-}
-
-func matchesChangeSetName(checksum, changeSetName string) bool {
-	str := fmt.Sprintf("stratus-(create|update)-%s", regexp.QuoteMeta(checksum))
-
-	return regexp.MustCompile(str).MatchString(changeSetName)
 }
 
 func getChangeSetType(name string) (ChangeSetType, error) {
@@ -47,6 +41,47 @@ func getChangeSetType(name string) (ChangeSetType, error) {
 	}
 
 	return changeSetType, nil
+}
+
+func isNoopChangeSet(output *cloudformation.DescribeChangeSetOutput) bool {
+	return output != nil &&
+		output.Status != nil &&
+		output.StatusReason != nil &&
+		*output.Status == cloudformation.ChangeSetStatusFailed &&
+		*output.StatusReason == "The submitted information didn't contain changes. Submit different information to create a change set."
+}
+
+func isResourceNotReadyError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	awsError, ok := err.(awserr.Error)
+	if !ok {
+		return false
+	}
+
+	return awsError.Code() == request.WaiterResourceNotReadyErrorCode
+}
+
+func isStackDoesNotExistError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	awsError, ok := err.(awserr.Error)
+	if !ok {
+		return false
+	}
+
+	return awsError.Code() == "ValidationError" &&
+		strings.Contains(awsError.Message(), "does not exist")
+}
+
+func matchesChangeSetName(checksum, changeSetName string) bool {
+	str := fmt.Sprintf("stratus-(create|update)-%s", regexp.QuoteMeta(checksum))
+
+	return regexp.MustCompile(str).MatchString(changeSetName)
 }
 
 func newChangeSetName(checksum string, changeSetType ChangeSetType) string {
@@ -95,41 +130,6 @@ func toCloudFormationTag(tag *config.StackTag) *cloudformation.Tag {
 		Key:   aws.String(tag.Key),
 		Value: aws.String(tag.Value),
 	}
-}
-
-func isNoopChangeSet(output *cloudformation.DescribeChangeSetOutput) bool {
-	return output != nil &&
-		output.Status != nil &&
-		output.StatusReason != nil &&
-		*output.Status == cloudformation.ChangeSetStatusFailed &&
-		*output.StatusReason == "The submitted information didn't contain changes. Submit different information to create a change set."
-}
-
-func isResourceNotReadyError(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	awsError, ok := err.(awserr.Error)
-	if !ok {
-		return false
-	}
-
-	return awsError.Code() == request.WaiterResourceNotReadyErrorCode
-}
-
-func isStackDoesNotExistError(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	awsError, ok := err.(awserr.Error)
-	if !ok {
-		return false
-	}
-
-	return awsError.Code() == "ValidationError" &&
-		strings.Contains(awsError.Message(), "does not exist")
 }
 
 func toS3URL(bucket, key string) string {

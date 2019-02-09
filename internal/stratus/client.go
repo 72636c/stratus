@@ -211,7 +211,7 @@ func (client *Client) FindExistingChangeSet(
 	}
 
 	for _, summary := range output.Summaries {
-		if matchesChangeSetSummary(stack, summary) {
+		if MatchesChangeSetSummary(stack, summary) {
 			return client.DescribeChangeSet(ctx, stack, *summary.ChangeSetName)
 		}
 	}
