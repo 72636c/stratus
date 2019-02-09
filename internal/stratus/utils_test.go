@@ -1,14 +1,15 @@
-package stratus
+package stratus_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/72636c/stratus/internal/config"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
-
 	"github.com/stretchr/testify/assert"
+
+	"github.com/72636c/stratus/internal/config"
+	"github.com/72636c/stratus/internal/stratus"
 )
 
 func Test_MatchesChangeSetSummary(t *testing.T) {
@@ -78,7 +79,7 @@ func Test_MatchesChangeSetSummary(t *testing.T) {
 		t.Run(testCase.description, func(t *testing.T) {
 			assert := assert.New(t)
 
-			actual := MatchesChangeSetSummary(stack, testCase.summary)
+			actual := stratus.MatchesChangeSetSummary(stack, testCase.summary)
 
 			assert.Equal(testCase.expected, actual)
 		})
