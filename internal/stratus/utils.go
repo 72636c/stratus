@@ -131,3 +131,7 @@ func isStackDoesNotExistError(err error) bool {
 	return awsError.Code() == "ValidationError" &&
 		strings.Contains(awsError.Message(), "does not exist")
 }
+
+func toS3URL(bucket, key string) string {
+	return fmt.Sprintf("https://s3.amazonaws.com/%s/%s", bucket, key)
+}

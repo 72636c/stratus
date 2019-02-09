@@ -1,6 +1,7 @@
 package stratus
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -9,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/72636c/stratus/internal/config"
@@ -20,11 +22,13 @@ var (
 
 type Client struct {
 	cfn CloudFormation
+	s3  S3
 }
 
-func NewClient(cfn CloudFormation) *Client {
+func NewClient(cfn CloudFormation, s3 S3) *Client {
 	return &Client{
 		cfn: cfn,
+		s3:  s3,
 	}
 }
 
@@ -47,9 +51,15 @@ func (client *Client) CreateChangeSet(
 		RollbackConfiguration: nil,
 		StackName:             aws.String(stack.Name),
 		Tags:                  toCloudFormationTags(stack.Tags),
-		TemplateBody:          aws.String(string(stack.Template)),
+		TemplateBody:          nil,
 		TemplateURL:           nil,
 		UsePreviousTemplate:   aws.Bool(false),
+	}
+
+	if stack.TemplateKey == "" {
+		input.SetTemplateBody(string(stack.Template))
+	} else {
+		input.SetTemplateURL(toS3URL(stack.ArtefactBucket, stack.TemplateKey))
 	}
 
 	_, err = client.cfn.CreateChangeSetWithContext(ctx, input)
@@ -130,10 +140,15 @@ func (client *Client) Diff(
 		return nil, err
 	}
 
-	var policy interface{}
+	var newPolicy, oldPolicy interface{}
+
+	err = json.Unmarshal(stack.Policy, &newPolicy)
+	if err != nil {
+		return nil, err
+	}
 
 	if policyOutput != nil && policyOutput.StackPolicyBody != nil {
-		err = json.Unmarshal([]byte(*policyOutput.StackPolicyBody), &policy)
+		err := json.Unmarshal([]byte(*policyOutput.StackPolicyBody), &oldPolicy)
 		if err != nil {
 			return nil, err
 		}
@@ -142,11 +157,11 @@ func (client *Client) Diff(
 	diff := &Diff{
 		ChangeSet: describeOutput,
 		New: &StackState{
-			StackPolicy:           stack.Policy,
+			StackPolicy:           newPolicy,
 			TerminationProtection: aws.Bool(stack.TerminationProtection),
 		},
 		Old: &StackState{
-			StackPolicy:           policy,
+			StackPolicy:           oldPolicy,
 			TerminationProtection: description.EnableTerminationProtection,
 		},
 	}
@@ -208,18 +223,19 @@ func (client *Client) SetStackPolicy(
 	ctx context.Context,
 	stack *config.Stack,
 ) error {
-	policyData, err := json.Marshal(stack.Policy)
-	if err != nil {
-		return err
-	}
-
 	input := &cloudformation.SetStackPolicyInput{
 		StackName:       aws.String(stack.Name),
-		StackPolicyBody: aws.String(string(policyData)),
+		StackPolicyBody: nil,
 		StackPolicyURL:  nil,
 	}
 
-	_, err = client.cfn.SetStackPolicyWithContext(ctx, input)
+	if stack.PolicyKey == "" {
+		input.SetStackPolicyBody(string(stack.Policy))
+	} else {
+		input.SetStackPolicyURL(toS3URL(stack.ArtefactBucket, stack.PolicyKey))
+	}
+
+	_, err := client.cfn.SetStackPolicyWithContext(ctx, input)
 	return err
 }
 
@@ -234,6 +250,39 @@ func (client *Client) UpdateTerminationProtection(
 
 	_, err := client.cfn.UpdateTerminationProtectionWithContext(ctx, input)
 	return err
+}
+
+func (client *Client) UploadArtefacts(
+	ctx context.Context,
+	stack *config.Stack,
+) error {
+	// TODO: object content type, file extension, metadata and tagging
+
+	policyInput := &s3.PutObjectInput{
+		Body:   bytes.NewReader(stack.Policy),
+		Bucket: aws.String(stack.ArtefactBucket),
+		Key:    aws.String(stack.PolicyKey),
+	}
+
+	templateInput := &s3.PutObjectInput{
+		Body:   bytes.NewReader(stack.Template),
+		Bucket: aws.String(stack.ArtefactBucket),
+		Key:    aws.String(stack.TemplateKey),
+	}
+
+	group, ctx := errgroup.WithContext(ctx)
+
+	group.Go(func() (err error) {
+		_, err = client.s3.PutObjectWithContext(ctx, policyInput)
+		return
+	})
+
+	group.Go(func() (err error) {
+		_, err = client.s3.PutObjectWithContext(ctx, templateInput)
+		return
+	})
+
+	return group.Wait()
 }
 
 func (client *Client) ValidateTemplate(

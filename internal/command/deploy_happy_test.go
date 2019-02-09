@@ -21,7 +21,7 @@ func Test_Deploy_Happy_ChangeSet_Create(t *testing.T) {
 
 		TerminationProtection: true,
 
-		Policy: interface{}(mockStackPolicy),
+		Policy: []byte(mockStackPolicy),
 
 		Checksum: mockChecksum,
 	}
@@ -54,7 +54,7 @@ func Test_Deploy_Happy_ChangeSet_Create(t *testing.T) {
 			"SetStackPolicyWithContext",
 			&cloudformation.SetStackPolicyInput{
 				StackName:       aws.String(mockStackName),
-				StackPolicyBody: aws.String(string(mockStackPolicyBody)),
+				StackPolicyBody: aws.String(mockStackPolicy),
 			},
 		).
 		Return(nil, nil).
@@ -67,7 +67,7 @@ func Test_Deploy_Happy_ChangeSet_Create(t *testing.T) {
 		).
 		Return(nil, nil)
 
-	client := stratus.NewClient(cfn)
+	client := stratus.NewClient(cfn, nil)
 
 	err := command.Deploy(context.Background(), client, stack, diff)
 	assert.NoError(err)
@@ -81,7 +81,7 @@ func Test_Deploy_Happy_ChangeSet_Update(t *testing.T) {
 
 		TerminationProtection: true,
 
-		Policy: interface{}(mockStackPolicy),
+		Policy: []byte(mockStackPolicy),
 
 		Checksum: mockChecksum,
 	}
@@ -114,7 +114,7 @@ func Test_Deploy_Happy_ChangeSet_Update(t *testing.T) {
 			"SetStackPolicyWithContext",
 			&cloudformation.SetStackPolicyInput{
 				StackName:       aws.String(mockStackName),
-				StackPolicyBody: aws.String(string(mockStackPolicyBody)),
+				StackPolicyBody: aws.String(mockStackPolicy),
 			},
 		).
 		Return(nil, nil).
@@ -127,7 +127,7 @@ func Test_Deploy_Happy_ChangeSet_Update(t *testing.T) {
 		).
 		Return(nil, nil)
 
-	client := stratus.NewClient(cfn)
+	client := stratus.NewClient(cfn, nil)
 
 	err := command.Deploy(context.Background(), client, stack, diff)
 	assert.NoError(err)
@@ -141,7 +141,7 @@ func Test_Deploy_Happy_NoChangeSet(t *testing.T) {
 
 		TerminationProtection: true,
 
-		Policy: interface{}(mockStackPolicy),
+		Policy: []byte(mockStackPolicy),
 
 		Checksum: mockChecksum,
 	}
@@ -155,7 +155,7 @@ func Test_Deploy_Happy_NoChangeSet(t *testing.T) {
 			"SetStackPolicyWithContext",
 			&cloudformation.SetStackPolicyInput{
 				StackName:       aws.String(mockStackName),
-				StackPolicyBody: aws.String(string(mockStackPolicyBody)),
+				StackPolicyBody: aws.String(mockStackPolicy),
 			},
 		).
 		Return(nil, nil).
@@ -168,7 +168,51 @@ func Test_Deploy_Happy_NoChangeSet(t *testing.T) {
 		).
 		Return(nil, nil)
 
-	client := stratus.NewClient(cfn)
+	client := stratus.NewClient(cfn, nil)
+
+	err := command.Deploy(context.Background(), client, stack, diff)
+	assert.NoError(err)
+}
+
+func Test_Deploy_Happy_NoChangeSet_UploadArtefacts(t *testing.T) {
+	assert := assert.New(t)
+
+	stack := &config.Stack{
+		Name: mockStackName,
+
+		TerminationProtection: true,
+
+		Policy: []byte(mockStackPolicy),
+
+		ArtefactBucket: mockArtefactBucket,
+		PolicyKey:      mockStackPolicyKey,
+
+		Checksum: mockChecksum,
+	}
+
+	diff := new(stratus.Diff)
+
+	cfn := stratus.NewCloudFormationMock()
+	defer cfn.AssertExpectations(t)
+	cfn.
+		On(
+			"SetStackPolicyWithContext",
+			&cloudformation.SetStackPolicyInput{
+				StackName:      aws.String(mockStackName),
+				StackPolicyURL: aws.String(mockStackPolicyURL),
+			},
+		).
+		Return(nil, nil).
+		On(
+			"UpdateTerminationProtectionWithContext",
+			&cloudformation.UpdateTerminationProtectionInput{
+				EnableTerminationProtection: aws.Bool(true),
+				StackName:                   aws.String(mockStackName),
+			},
+		).
+		Return(nil, nil)
+
+	client := stratus.NewClient(cfn, nil)
 
 	err := command.Deploy(context.Background(), client, stack, diff)
 	assert.NoError(err)

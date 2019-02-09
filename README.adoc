@@ -32,7 +32,7 @@ A YAML config file looks like:
 
 ```yaml
 defaults:
-  uploadArtefacts: s3://{{aws:ssm:parameter:artefact-bucket}}
+  uploadArtefacts: '{{aws:ssm:parameter:artefact-bucket}}'
 
 stacks:
   - name: stratus-sample-{{env:ENVIRONMENT}}

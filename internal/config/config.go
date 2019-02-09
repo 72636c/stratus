@@ -40,11 +40,18 @@ type Stack struct {
 	Tags                  StackTags
 	TerminationProtection bool
 
-	Policy          interface{}
-	Template        []byte
-	UploadArtefacts string
+	Policy   []byte
+	Template []byte
+
+	ArtefactBucket string
+	PolicyKey      string `json:"-"`
+	TemplateKey    string `json:"-"`
 
 	Checksum string `json:"-"`
+}
+
+func (stack *Stack) ShouldUpload() bool {
+	return stack.ArtefactBucket != ""
 }
 
 func (stack *Stack) String() string {

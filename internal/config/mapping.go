@@ -1,7 +1,7 @@
 package config
 
 import (
-	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 )
@@ -44,14 +44,7 @@ func fromRawStack(
 		rawStack.PolicyFile.String(),
 	)
 
-	policyData, err := ioutil.ReadFile(policyPath)
-	if err != nil {
-		return nil, err
-	}
-
-	var policy interface{}
-
-	err = json.Unmarshal(policyData, &policy)
+	policy, err := ioutil.ReadFile(policyPath)
 	if err != nil {
 		return nil, err
 	}
@@ -74,9 +67,10 @@ func fromRawStack(
 		Tags:                  fromRawStackTags(rawStack.Tags),
 		TerminationProtection: rawStack.TerminationProtection.Bool(),
 
-		Policy:          policy,
-		Template:        template,
-		UploadArtefacts: rawConfig.Defaults.UploadArtefacts.String(),
+		Policy:   policy,
+		Template: template,
+
+		ArtefactBucket: rawConfig.Defaults.UploadArtefacts.String(),
 	}
 
 	checksum, err := CalculateChecksum(stack)
@@ -85,6 +79,12 @@ func fromRawStack(
 	}
 
 	stack.Checksum = checksum
+
+	if stack.ArtefactBucket != "" {
+		keyFormat := fmt.Sprintf("stratus/%s/%s/%%s", stack.Name, stack.Checksum)
+		stack.PolicyKey = fmt.Sprintf(keyFormat, "policy")
+		stack.TemplateKey = fmt.Sprintf(keyFormat, "template")
+	}
 
 	return stack, nil
 }
