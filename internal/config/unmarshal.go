@@ -20,9 +20,33 @@ var (
 		".yml":  yaml.UnmarshalStrict,
 	}
 
-	prefixToMapper      = make(map[string]Mapper)
-	prefixToMapperMutex sync.Mutex
+	mappers = NewMappers()
 )
+
+type Mappers struct {
+	sync.RWMutex
+	fromPrefix map[string]Mapper
+}
+
+func NewMappers() *Mappers {
+	return &Mappers{
+		RWMutex:    sync.RWMutex{},
+		fromPrefix: make(map[string]Mapper),
+	}
+}
+
+func (mappers *Mappers) Get(prefix string) (Mapper, bool) {
+	mappers.RLock()
+	mapper, ok := mappers.fromPrefix[prefix]
+	mappers.RUnlock()
+
+	return mapper, ok
+}
+func (mappers *Mappers) Set(prefix string, mapper Mapper) {
+	mappers.Lock()
+	mappers.fromPrefix[prefix] = mapper
+	mappers.Unlock()
+}
 
 type Mapper func(placeholder string) (string, error)
 
@@ -60,17 +84,11 @@ func newAWSMapper(provider client.ConfigProvider) Mapper {
 }
 
 func Init(provider client.ConfigProvider) {
-	prefixToMapperMutex.Lock()
-
-	prefixToMapper = map[string]Mapper{
-		"env": envMapper,
-	}
+	mappers.Set("env", envMapper)
 
 	if provider != nil {
-		prefixToMapper["aws"] = newAWSMapper(provider)
+		mappers.Set("aws", newAWSMapper(provider))
 	}
-
-	prefixToMapperMutex.Unlock()
 }
 
 func Unmarshal(
@@ -160,7 +178,7 @@ func Resolve(data string) (string, error) {
 			prefix := slice[0]
 			suffix := slice[1]
 
-			mapper, ok := prefixToMapper[prefix]
+			mapper, ok := mappers.Get(prefix)
 			if !ok {
 				return "", fmt.Errorf("unsupported placeholder '%s'", str)
 			}
