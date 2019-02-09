@@ -38,7 +38,7 @@ func Test_Delete_Happy(t *testing.T) {
 		).
 		Return(nil)
 
-	client := stratus.NewClient(cfn)
+	client := stratus.NewClient(cfn, nil)
 
 	err := command.Delete(context.Background(), client, stack)
 	assert.NoError(err)

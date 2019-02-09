@@ -34,6 +34,15 @@ func Preview(
 
 		output <- validateOutput
 
+		if stack.ShouldUpload() {
+			output <- "Upload artefacts"
+
+			err = client.UploadArtefacts(ctx, stack)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		output <- "Create change set"
 
 		describeOutput, err = client.CreateChangeSet(ctx, stack)

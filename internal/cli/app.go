@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/72636c/stratus/internal/config"
@@ -78,9 +79,10 @@ func New() (_ *App, err error) {
 		return nil, err
 	}
 
-	cloudFormation := cloudformation.New(provider)
+	cfnClient := cloudformation.New(provider)
+	s3Client := s3.New(provider)
 
-	client := stratus.NewClient(cloudFormation)
+	client := stratus.NewClient(cfnClient, s3Client)
 
 	config.Init(provider)
 

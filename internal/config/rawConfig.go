@@ -1,7 +1,12 @@
 package config
 
 type RawConfig struct {
-	Stacks []*RawStack `json:"stacks"`
+	Defaults RawDefaults `json:"defaults"`
+	Stacks   []*RawStack `json:"stacks"`
+}
+
+type RawDefaults struct {
+	ArtefactBucket String `json:"artefactBucket" yaml:"artefactBucket"`
 }
 
 type RawStack struct {

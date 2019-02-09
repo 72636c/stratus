@@ -1,15 +1,18 @@
 package command_test
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
 const (
 	mockChecksum = "1000000000200000000030000000004000000000500000000060000000007000"
 
+	mockArtefactBucket   = "test-bucket-name"
+	mockStackPolicyKey   = "test-policy-key"
+	mockStackTemplateKey = "test-template-key"
+
 	mockStackName     = "test-stack-name"
-	mockStackPolicy   = "test-stack-policy"
+	mockStackPolicy   = `"test-stack-policy"`
 	mockStackTemplate = "test-stack-template"
 )
 
@@ -17,14 +20,6 @@ var (
 	mockChangeSetCreateName = fmt.Sprintf("stratus-create-%s", mockChecksum)
 	mockChangeSetUpdateName = fmt.Sprintf("stratus-update-%s", mockChecksum)
 
-	mockStackPolicyBody = mustMarshal(mockStackPolicy)
+	mockStackPolicyURL   = fmt.Sprintf("https://s3.amazonaws.com/%s/%s", mockArtefactBucket, mockStackPolicyKey)
+	mockStackTemplateURL = fmt.Sprintf("https://s3.amazonaws.com/%s/%s", mockArtefactBucket, mockStackTemplateKey)
 )
-
-func mustMarshal(model interface{}) []byte {
-	data, err := json.Marshal(model)
-	if err != nil {
-		panic(fmt.Errorf("mustMarshal: %+v", err))
-	}
-
-	return data
-}

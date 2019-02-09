@@ -1,13 +1,13 @@
 package config
 
 import (
-	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 )
 
-func fromRawConfig(raw *RawConfig, path string) (*Config, error) {
-	stacks, err := fromRawStacks(raw.Stacks, path)
+func fromRawConfig(rawConfig *RawConfig, path string) (*Config, error) {
+	stacks, err := fromRawStacks(rawConfig, path)
 	if err != nil {
 		return nil, err
 	}
@@ -19,13 +19,13 @@ func fromRawConfig(raw *RawConfig, path string) (*Config, error) {
 	return config, nil
 }
 
-func fromRawStacks(raw []*RawStack, path string) ([]*Stack, error) {
-	slice := make([]*Stack, len(raw))
+func fromRawStacks(rawConfig *RawConfig, path string) ([]*Stack, error) {
+	slice := make([]*Stack, len(rawConfig.Stacks))
 
-	for index, stack := range raw {
+	for index, stack := range rawConfig.Stacks {
 		var err error
 
-		slice[index], err = fromRawStack(stack, path)
+		slice[index], err = fromRawStack(rawConfig, stack, path)
 		if err != nil {
 			return nil, err
 		}
@@ -34,27 +34,24 @@ func fromRawStacks(raw []*RawStack, path string) ([]*Stack, error) {
 	return slice, nil
 }
 
-func fromRawStack(raw *RawStack, path string) (*Stack, error) {
+func fromRawStack(
+	rawConfig *RawConfig,
+	rawStack *RawStack,
+	path string,
+) (*Stack, error) {
 	policyPath := filepath.Join(
 		filepath.Dir(path),
-		raw.PolicyFile.String(),
+		rawStack.PolicyFile.String(),
 	)
 
-	policyData, err := ioutil.ReadFile(policyPath)
-	if err != nil {
-		return nil, err
-	}
-
-	var policy interface{}
-
-	err = json.Unmarshal(policyData, &policy)
+	policy, err := ioutil.ReadFile(policyPath)
 	if err != nil {
 		return nil, err
 	}
 
 	templatePath := filepath.Join(
 		filepath.Dir(path),
-		raw.TemplateFile.String(),
+		rawStack.TemplateFile.String(),
 	)
 
 	template, err := ioutil.ReadFile(templatePath)
@@ -63,15 +60,17 @@ func fromRawStack(raw *RawStack, path string) (*Stack, error) {
 	}
 
 	stack := &Stack{
-		Name: raw.Name.String(),
+		Name: rawStack.Name.String(),
 
-		Capabilities:          fromRawStackCapabilities(raw.Capabilities),
-		Parameters:            fromRawStackParameters(raw.Parameters),
-		Tags:                  fromRawStackTags(raw.Tags),
-		TerminationProtection: raw.TerminationProtection.Bool(),
+		Capabilities:          fromRawStackCapabilities(rawStack.Capabilities),
+		Parameters:            fromRawStackParameters(rawStack.Parameters),
+		Tags:                  fromRawStackTags(rawStack.Tags),
+		TerminationProtection: rawStack.TerminationProtection.Bool(),
 
 		Policy:   policy,
 		Template: template,
+
+		ArtefactBucket: rawConfig.Defaults.ArtefactBucket.String(),
 	}
 
 	checksum, err := CalculateChecksum(stack)
@@ -80,6 +79,12 @@ func fromRawStack(raw *RawStack, path string) (*Stack, error) {
 	}
 
 	stack.Checksum = checksum
+
+	if stack.ArtefactBucket != "" {
+		keyFormat := fmt.Sprintf("stratus/%s/%s/%%s", stack.Name, stack.Checksum)
+		stack.PolicyKey = fmt.Sprintf(keyFormat, "policy")
+		stack.TemplateKey = fmt.Sprintf(keyFormat, "template")
+	}
 
 	return stack, nil
 }
