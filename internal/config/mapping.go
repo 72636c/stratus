@@ -1,16 +1,25 @@
 package config
 
 import (
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 )
 
 func fromRawConfig(
 	raw *RawConfig,
-	checksum string,
 	relativePath string,
 ) (*Config, error) {
+	data, err := json.Marshal(raw)
+	if err != nil {
+		return nil, err
+	}
+
+	// FIXME: this does not account for external files
+	checksum := fmt.Sprintf("%x", sha256.Sum256(data))
+
 	stacks, err := fromRawStacks(raw.Stacks, checksum, relativePath)
 	if err != nil {
 		return nil, err
