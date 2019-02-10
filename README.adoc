@@ -6,22 +6,46 @@ Simple layer for managing CloudFormation stacks in CI/CD.
 
 == Commands
 
+=== Native
+
 ```shell
-# preview change set
+stratus --help
+
+# Preview change set
 stratus preview
 
-# deploy change set
+# Deploy change set
 stratus deploy
 
-# delete stack
+# Delete stack
 stratus delete
+```
+
+=== Docker
+
+```shell
+docker build --tag stratus .
+
+# Linux, macOS (sh)
+docker run      \
+--env-file .env \
+--rm            \
+--volume .:/tmp \
+--workdir /tmp  \
+stratus --help
+
+# Windows (PowerShell)
+docker run           `
+--env-file .env      `
+--rm                 `
+--volume ${pwd}:/tmp `
+--workdir /tmp       `
+stratus --help
 ```
 
 == Config
 
-link:/samples[`/samples`]
-
-A YAML config file looks like:
+Define a YAML file like so:
 
 ```yaml
 defaults:
@@ -38,26 +62,43 @@ stacks:
     templateFile: ./template.yaml
 ```
 
-== Docker
+More in link:/samples[`/samples`].
 
-```shell
-docker build  \
---tag stratus \
-.
+== Meta
 
-# linux, macOS
-docker run      \
---env-file .env \
---rm            \
---volume .:/tmp \
---workdir /tmp  \
-stratus preview
+=== Motivation
 
-# windows
-docker run           \
---env-file .env      \
---rm                 \
---volume ${pwd}:/tmp \
---workdir /tmp       \
-stratus preview
-```
+- Binary distribution
+- Change set-based previews
+- Synchronous interface
+- Vanilla CloudFormation artefacts
+
+[options=header]
+|===
+| Tool | Distribution | Dry Run Command | Deployment Command
+
+| link:https://aws.amazon.com/cli/[AWS CLI]
+| ❎ Python package
+| ❎ glue code
+| ✅ `aws cloudformation deploy`
+
+| link:https://aws.amazon.com/tools/#sdk[AWS SDK]
+| ✅ cross-language library
+| ❎ glue code
+| ❎ glue code
+
+| link:https://serverless.com/[Serverless Framework]
+| ❎ JavaScript package
+| ❎ no change sets
+| ✅ `serverless deploy`
+
+| Stratus
+| ✅ binary
+| ✅ `stratus preview`
+| ✅ `stratus deploy`
+
+|===
+
+=== Name
+
+_Stratus_ was a reasonably-short result from googling _cloud formations_.
