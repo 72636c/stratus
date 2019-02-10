@@ -197,7 +197,19 @@ func (client *Client) FindExistingChangeSet(
 
 	for _, summary := range output.Summaries {
 		if MatchesChangeSetSummary(stack, summary) {
-			return client.describeChangeSet(ctx, stack, *summary.ChangeSetName)
+			name := *summary.ChangeSetName
+
+			output, err := client.getChangeSetTemplate(ctx, stack, name)
+			if err != nil {
+				return nil, err
+			}
+
+			if string(stack.Template) != *output.TemplateBody {
+				// TODO: raise error to indicate tampering?
+				continue
+			}
+
+			return client.describeChangeSet(ctx, stack, name)
 		}
 	}
 
@@ -328,6 +340,20 @@ func (client *Client) getStackPolicy(
 	}
 
 	return client.cfn.GetStackPolicyWithContext(ctx, input)
+}
+
+func (client *Client) getChangeSetTemplate(
+	ctx context.Context,
+	stack *config.Stack,
+	name string,
+) (*cloudformation.GetTemplateOutput, error) {
+	input := &cloudformation.GetTemplateInput{
+		ChangeSetName: aws.String(name),
+		StackName:     aws.String(stack.Name),
+		TemplateStage: aws.String(cloudformation.TemplateStageOriginal),
+	}
+
+	return client.cfn.GetTemplateWithContext(ctx, input)
 }
 
 func (client *Client) handleCreateChangeSetError(

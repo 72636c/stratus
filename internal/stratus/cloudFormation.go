@@ -48,6 +48,12 @@ type CloudFormation interface {
 		...request.Option,
 	) (*cloudformation.GetStackPolicyOutput, error)
 
+	GetTemplateWithContext(
+		aws.Context,
+		*cloudformation.GetTemplateInput,
+		...request.Option,
+	) (*cloudformation.GetTemplateOutput, error)
+
 	ListChangeSetsWithContext(
 		aws.Context,
 		*cloudformation.ListChangeSetsInput,

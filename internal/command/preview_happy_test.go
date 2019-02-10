@@ -25,7 +25,8 @@ func Test_Preview_Happy_ExistingChangeSet(t *testing.T) {
 	stack := &config.Stack{
 		Name: mockStackName,
 
-		Policy: []byte(mockStackPolicy),
+		Policy:   []byte(mockStackPolicy),
+		Template: []byte(mockStackTemplate),
 
 		Checksum: mockChecksum,
 	}
@@ -47,6 +48,20 @@ func Test_Preview_Happy_ExistingChangeSet(t *testing.T) {
 						ExecutionStatus: aws.String(cloudformation.ExecutionStatusAvailable),
 					},
 				},
+			},
+			nil,
+		).
+		On(
+			"GetTemplateWithContext",
+			&cloudformation.GetTemplateInput{
+				ChangeSetName: aws.String(mockChangeSetCreateName),
+				StackName:     aws.String(stack.Name),
+				TemplateStage: aws.String(cloudformation.TemplateStageOriginal),
+			},
+		).
+		Return(
+			&cloudformation.GetTemplateOutput{
+				TemplateBody: aws.String(mockStackTemplate),
 			},
 			nil,
 		).
