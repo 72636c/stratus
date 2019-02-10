@@ -78,7 +78,7 @@ func (client *Client) CreateChangeSet(
 		return nil, client.handleCreateChangeSetError(ctx, stack, name, err)
 	}
 
-	return client.DescribeChangeSet(ctx, stack, name)
+	return client.describeChangeSet(ctx, stack, name)
 }
 
 func (client *Client) DeleteStack(
@@ -98,21 +98,6 @@ func (client *Client) DeleteStack(
 	}
 
 	return client.waitUntilStackDeleteComplete(ctx, stack)
-}
-
-func (client *Client) DescribeChangeSet(
-	ctx context.Context,
-	stack *config.Stack,
-	name string,
-) (*cloudformation.DescribeChangeSetOutput, error) {
-	input := &cloudformation.DescribeChangeSetInput{
-		ChangeSetName: aws.String(name),
-		// TODO: handle pagination
-		NextToken: nil,
-		StackName: aws.String(stack.Name),
-	}
-
-	return client.cfn.DescribeChangeSetWithContext(ctx, input)
 }
 
 func (client *Client) Diff(
@@ -212,7 +197,7 @@ func (client *Client) FindExistingChangeSet(
 
 	for _, summary := range output.Summaries {
 		if MatchesChangeSetSummary(stack, summary) {
-			return client.DescribeChangeSet(ctx, stack, *summary.ChangeSetName)
+			return client.describeChangeSet(ctx, stack, *summary.ChangeSetName)
 		}
 	}
 
@@ -299,6 +284,21 @@ func (client *Client) ValidateTemplate(
 	return client.cfn.ValidateTemplateWithContext(ctx, input)
 }
 
+func (client *Client) describeChangeSet(
+	ctx context.Context,
+	stack *config.Stack,
+	name string,
+) (*cloudformation.DescribeChangeSetOutput, error) {
+	input := &cloudformation.DescribeChangeSetInput{
+		ChangeSetName: aws.String(name),
+		// TODO: handle pagination
+		NextToken: nil,
+		StackName: aws.String(stack.Name),
+	}
+
+	return client.cfn.DescribeChangeSetWithContext(ctx, input)
+}
+
 func (client *Client) describeStack(
 	ctx context.Context,
 	stack *config.Stack,
@@ -340,7 +340,7 @@ func (client *Client) handleCreateChangeSetError(
 		return err
 	}
 
-	describeOutput, describeError := client.DescribeChangeSet(ctx, stack, name)
+	describeOutput, describeError := client.describeChangeSet(ctx, stack, name)
 	if describeError != nil {
 		return err
 	}
