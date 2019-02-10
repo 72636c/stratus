@@ -367,7 +367,7 @@ func (client *Client) listChangeSets(
 
 func (client *Client) newChangeSetExecuteCompleteWaiter(
 	name string,
-) (StackWaiter, error) {
+) (stackWaiter, error) {
 	changeSetType, err := getChangeSetType(name)
 
 	switch changeSetType {

@@ -57,7 +57,7 @@ type StackState struct {
 	TerminationProtection *bool
 }
 
-type StackWaiter func(
+type stackWaiter func(
 	aws.Context,
 	*cloudformation.DescribeStacksInput,
 	...request.WaiterOption,
