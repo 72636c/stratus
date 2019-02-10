@@ -187,7 +187,7 @@ func (client *Client) FindExistingChangeSet(
 	ctx context.Context,
 	stack *config.Stack,
 ) (*cloudformation.DescribeChangeSetOutput, error) {
-	output, err := client.listChangeSets(ctx, stack)
+	listOutput, err := client.listChangeSets(ctx, stack)
 	if isStackDoesNotExistError(err) {
 		return nil, nil
 	}
@@ -195,21 +195,40 @@ func (client *Client) FindExistingChangeSet(
 		return nil, err
 	}
 
-	for _, summary := range output.Summaries {
+	for _, summary := range listOutput.Summaries {
 		if MatchesChangeSetSummary(stack, summary) {
 			name := *summary.ChangeSetName
 
-			output, err := client.getChangeSetTemplate(ctx, stack, name)
+			var (
+				group *errgroup.Group
+
+				changeSetOutput *cloudformation.DescribeChangeSetOutput
+				templateOutput  *cloudformation.GetTemplateOutput
+			)
+
+			group, ctx = errgroup.WithContext(ctx)
+
+			group.Go(func() (err error) {
+				changeSetOutput, err = client.describeChangeSet(ctx, stack, name)
+				return
+			})
+
+			group.Go(func() (err error) {
+				templateOutput, err = client.getChangeSetTemplate(ctx, stack, name)
+				return
+			})
+
+			err := group.Wait()
 			if err != nil {
 				return nil, err
 			}
 
-			if string(stack.Template) != *output.TemplateBody {
+			if string(stack.Template) != *templateOutput.TemplateBody {
 				// TODO: raise error to indicate tampering?
 				continue
 			}
 
-			return client.describeChangeSet(ctx, stack, name)
+			return changeSetOutput, nil
 		}
 	}
 
@@ -331,17 +350,6 @@ func (client *Client) describeStack(
 	return describeOutput.Stacks[0], nil
 }
 
-func (client *Client) getStackPolicy(
-	ctx context.Context,
-	stack *config.Stack,
-) (*cloudformation.GetStackPolicyOutput, error) {
-	input := &cloudformation.GetStackPolicyInput{
-		StackName: aws.String(stack.Name),
-	}
-
-	return client.cfn.GetStackPolicyWithContext(ctx, input)
-}
-
 func (client *Client) getChangeSetTemplate(
 	ctx context.Context,
 	stack *config.Stack,
@@ -354,6 +362,17 @@ func (client *Client) getChangeSetTemplate(
 	}
 
 	return client.cfn.GetTemplateWithContext(ctx, input)
+}
+
+func (client *Client) getStackPolicy(
+	ctx context.Context,
+	stack *config.Stack,
+) (*cloudformation.GetStackPolicyOutput, error) {
+	input := &cloudformation.GetStackPolicyInput{
+		StackName: aws.String(stack.Name),
+	}
+
+	return client.cfn.GetStackPolicyWithContext(ctx, input)
 }
 
 func (client *Client) handleCreateChangeSetError(
