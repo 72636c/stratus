@@ -225,8 +225,10 @@ func (client *Client) FindExistingChangeSet(
 			}
 
 			if !MatchesChangeSetContents(stack, changeSetOutput, templateOutput) {
-				// TODO: raise error to indicate tampering?
-				continue
+				return nil, fmt.Errorf(
+					"change set '%s' has been modified",
+					*summary.ChangeSetName,
+				)
 			}
 
 			if *summary.ExecutionStatus == cloudformation.ExecutionStatusUnavailable {
