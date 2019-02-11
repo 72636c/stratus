@@ -19,7 +19,7 @@ import (
 	"github.com/72636c/stratus/internal/stratus"
 )
 
-func Test_Preview_Happy_CreateChangeSet(t *testing.T) {
+func Test_Stage_Happy_CreateChangeSet(t *testing.T) {
 	assert := assert.New(t)
 
 	stack := &config.Stack{
@@ -111,11 +111,11 @@ func Test_Preview_Happy_CreateChangeSet(t *testing.T) {
 
 	client := stratus.NewClient(cfn, nil)
 
-	_, err := command.Preview(context.Background(), client, stack)
+	_, err := command.Stage(context.Background(), client, stack)
 	assert.NoError(err)
 }
 
-func Test_Preview_Happy_NoopChangeSet(t *testing.T) {
+func Test_Stage_Happy_NoopChangeSet(t *testing.T) {
 	assert := assert.New(t)
 
 	stack := &config.Stack{
@@ -199,11 +199,11 @@ func Test_Preview_Happy_NoopChangeSet(t *testing.T) {
 
 	client := stratus.NewClient(cfn, nil)
 
-	_, err := command.Preview(context.Background(), client, stack)
+	_, err := command.Stage(context.Background(), client, stack)
 	assert.NoError(err)
 }
 
-func Test_Preview_Happy_NoopChangeSet_UploadArtefacts(t *testing.T) {
+func Test_Stage_Happy_NoopChangeSet_UploadArtefacts(t *testing.T) {
 	assert := assert.New(t)
 
 	stack := &config.Stack{
@@ -321,11 +321,11 @@ func Test_Preview_Happy_NoopChangeSet_UploadArtefacts(t *testing.T) {
 
 	client := stratus.NewClient(cfn, s3Client)
 
-	_, err := command.Preview(context.Background(), client, stack)
+	_, err := command.Stage(context.Background(), client, stack)
 	assert.NoError(err)
 }
 
-func Test_Preview_Happy_UpdateChangeSet(t *testing.T) {
+func Test_Stage_Happy_UpdateChangeSet(t *testing.T) {
 	assert := assert.New(t)
 
 	stack := &config.Stack{
@@ -403,6 +403,6 @@ func Test_Preview_Happy_UpdateChangeSet(t *testing.T) {
 
 	client := stratus.NewClient(cfn, nil)
 
-	_, err := command.Preview(context.Background(), client, stack)
+	_, err := command.Stage(context.Background(), client, stack)
 	assert.NoError(err)
 }

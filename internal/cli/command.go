@@ -11,9 +11,9 @@ import (
 
 var (
 	nameToCommand = map[string]Command{
-		"delete":  command.Delete,
-		"deploy":  command.Deploy,
-		"preview": previewAdapter,
+		"delete": command.Delete,
+		"deploy": command.Deploy,
+		"stage":  stageAdapter,
 	}
 
 	commandNames = func() string {
@@ -29,11 +29,11 @@ var (
 
 type Command func(context.Context, *stratus.Client, *config.Stack) error
 
-func previewAdapter(
+func stageAdapter(
 	ctx context.Context,
 	client *stratus.Client,
 	stack *config.Stack,
 ) (err error) {
-	_, err = command.Preview(ctx, client, stack)
+	_, err = command.Stage(ctx, client, stack)
 	return
 }

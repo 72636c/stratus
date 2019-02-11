@@ -6,7 +6,7 @@ import (
 	"github.com/72636c/stratus/internal/stratus"
 )
 
-func Preview(
+func Stage(
 	ctx context.Context,
 	client *stratus.Client,
 	stack *config.Stack,
