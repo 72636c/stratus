@@ -11,8 +11,8 @@ Simple layer for managing CloudFormation stacks in CI/CD.
 ```shell
 stratus --help
 
-# Preview change set
-stratus preview
+# Stage change set
+stratus stage
 
 # Deploy change set
 stratus deploy
@@ -94,7 +94,7 @@ More in link:/samples[`/samples`].
 
 | Stratus
 | ✅ binary
-| ✅ `stratus preview`
+| ✅ `stratus stage`
 | ✅ `stratus deploy`
 
 |===
