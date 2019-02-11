@@ -81,9 +81,13 @@ func fromRawStack(
 	stack.Checksum = checksum
 
 	if stack.ArtefactBucket != "" {
-		keyFormat := fmt.Sprintf("stratus/%s/%s/%%s", stack.Name, stack.Checksum)
-		stack.PolicyKey = fmt.Sprintf(keyFormat, "policy")
-		stack.TemplateKey = fmt.Sprintf(keyFormat, "template")
+		keyFormat := fmt.Sprintf("stratus/%s/%s/%%s%%s", stack.Name, stack.Checksum)
+
+		policyExtension := filepath.Ext(rawStack.PolicyFile.String())
+		templateExtension := filepath.Ext(rawStack.TemplateFile.String())
+
+		stack.PolicyKey = fmt.Sprintf(keyFormat, "policy", policyExtension)
+		stack.TemplateKey = fmt.Sprintf(keyFormat, "template", templateExtension)
 	}
 
 	return stack, nil

@@ -279,7 +279,7 @@ func (client *Client) UploadArtefacts(
 	ctx context.Context,
 	stack *config.Stack,
 ) error {
-	// TODO: object content type, file extension, metadata and tagging
+	// TODO: object content type, metadata and tagging
 
 	policyInput := &s3.PutObjectInput{
 		Body:   bytes.NewReader(stack.Policy),
