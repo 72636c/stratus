@@ -2,7 +2,9 @@ package stratus
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -17,6 +19,16 @@ import (
 var (
 	changeSetRegexp = regexp.MustCompile(`stratus-(create|update)-[0-9a-f]{64}`)
 )
+
+func MatchesChangeSetContents(
+	stack *config.Stack,
+	changeSet *cloudformation.DescribeChangeSetOutput,
+	template *cloudformation.GetTemplateOutput,
+) bool {
+	return string(stack.Template) == *template.TemplateBody &&
+		matchesChangeSetCapabilities(stack.Capabilities, changeSet.Capabilities) &&
+		matchesChangeSetParameters(stack.Parameters, changeSet.Parameters)
+}
 
 func MatchesChangeSetSummary(
 	stack *config.Stack,
@@ -78,10 +90,47 @@ func isStackDoesNotExistError(err error) bool {
 		strings.Contains(awsError.Message(), "does not exist")
 }
 
+func matchesChangeSetCapabilities(expected []string, actual []*string) bool {
+	return reflect.DeepEqual(
+		sort.StringSlice(expected),
+		sort.StringSlice(toStringList(actual)),
+	)
+}
+
 func matchesChangeSetName(checksum, changeSetName string) bool {
 	str := fmt.Sprintf("stratus-(create|update)-%s", regexp.QuoteMeta(checksum))
 
 	return regexp.MustCompile(str).MatchString(changeSetName)
+}
+
+func matchesChangeSetParameters(
+	expected config.StackParameters,
+	actual []*cloudformation.Parameter,
+) bool {
+	actualValues := make(config.StackParameters, 0)
+
+	for _, parameter := range actual {
+		if parameter != nil {
+			value := &config.StackParameter{
+				Key:   *parameter.ParameterKey,
+				Value: *parameter.ParameterValue,
+			}
+
+			actualValues = append(actualValues, value)
+		}
+	}
+
+	if len(expected) != len(actualValues) {
+		return false
+	}
+
+	for _, value := range actualValues {
+		if !expected.Contains(value.Key, value.Value) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func newChangeSetName(checksum string, changeSetType ChangeSetType) string {
@@ -134,4 +183,16 @@ func toCloudFormationTag(tag *config.StackTag) *cloudformation.Tag {
 
 func toS3URL(bucket, key string) string {
 	return fmt.Sprintf("https://s3.amazonaws.com/%s/%s", bucket, key)
+}
+
+func toStringList(xs []*string) []string {
+	slice := make([]string, 0)
+
+	for _, x := range xs {
+		if x != nil {
+			slice = append(slice, *x)
+		}
+	}
+
+	return slice
 }

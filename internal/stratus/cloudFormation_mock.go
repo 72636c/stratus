@@ -87,6 +87,18 @@ func (client *CloudFormationMock) GetStackPolicyWithContext(
 	return args.Get(0).(*cloudformation.GetStackPolicyOutput), args.Error(1)
 }
 
+func (client *CloudFormationMock) GetTemplateWithContext(
+	_ aws.Context,
+	input *cloudformation.GetTemplateInput,
+	_ ...request.Option,
+) (*cloudformation.GetTemplateOutput, error) {
+	args := client.Called(input)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*cloudformation.GetTemplateOutput), args.Error(1)
+}
+
 func (client *CloudFormationMock) ListChangeSetsWithContext(
 	_ aws.Context,
 	input *cloudformation.ListChangeSetsInput,
