@@ -1,8 +1,6 @@
 package command
 
 import (
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-
 	"github.com/72636c/stratus/internal/config"
 	"github.com/72636c/stratus/internal/context"
 	"github.com/72636c/stratus/internal/stratus"
@@ -15,40 +13,29 @@ func Preview(
 ) (*stratus.Diff, error) {
 	output := context.Output(ctx)
 
-	output <- "Find existing change set"
+	output <- "Validate template"
 
-	describeOutput, err := client.FindExistingChangeSet(ctx, stack)
+	validateOutput, err := client.ValidateTemplate(ctx, stack)
 	if err != nil {
 		return nil, err
 	}
 
-	if describeOutput == nil {
-		output <- "Validate template"
+	output <- validateOutput
 
-		var validateOutput *cloudformation.ValidateTemplateOutput
+	if stack.ShouldUpload() {
+		output <- "Upload artefacts"
 
-		validateOutput, err = client.ValidateTemplate(ctx, stack)
+		err = client.UploadArtefacts(ctx, stack)
 		if err != nil {
 			return nil, err
 		}
+	}
 
-		output <- validateOutput
+	output <- "Create change set"
 
-		if stack.ShouldUpload() {
-			output <- "Upload artefacts"
-
-			err = client.UploadArtefacts(ctx, stack)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		output <- "Create change set"
-
-		describeOutput, err = client.CreateChangeSet(ctx, stack)
-		if err != nil {
-			return nil, err
-		}
+	describeOutput, err := client.CreateChangeSet(ctx, stack)
+	if err != nil {
+		return nil, err
 	}
 
 	output <- "Diff stack"

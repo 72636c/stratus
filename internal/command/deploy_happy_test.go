@@ -13,28 +13,95 @@ import (
 	"github.com/72636c/stratus/internal/stratus"
 )
 
-func Test_Deploy_Happy_ChangeSet_Create(t *testing.T) {
+func Test_Deploy_Happy_ExistingChangeSet_Create(t *testing.T) {
 	assert := assert.New(t)
 
 	stack := &config.Stack{
 		Name: mockStackName,
 
+		Capabilities: []string{
+			cloudformation.CapabilityCapabilityAutoExpand,
+			cloudformation.CapabilityCapabilityNamedIam,
+		},
+		Parameters: config.StackParameters{
+			&config.StackParameter{
+				Key:   "test-parameter-key-b",
+				Value: "test-parameter-value-b",
+			},
+			&config.StackParameter{
+				Key:   "test-parameter-key-a",
+				Value: "test-parameter-value-a",
+			},
+		},
 		TerminationProtection: true,
 
-		Policy: []byte(mockStackPolicy),
+		Policy:   []byte(mockStackPolicy),
+		Template: []byte(mockStackTemplate),
 
 		Checksum: mockChecksum,
-	}
-
-	diff := &stratus.Diff{
-		ChangeSet: &cloudformation.DescribeChangeSetOutput{
-			ChangeSetName: aws.String(mockChangeSetCreateName),
-		},
 	}
 
 	cfn := stratus.NewCloudFormationMock()
 	defer cfn.AssertExpectations(t)
 	cfn.
+		On(
+			"ListChangeSetsWithContext",
+			&cloudformation.ListChangeSetsInput{
+				StackName: aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.ListChangeSetsOutput{
+				Summaries: []*cloudformation.ChangeSetSummary{
+					&cloudformation.ChangeSetSummary{
+						ChangeSetName:   aws.String(mockChangeSetCreateName),
+						ExecutionStatus: aws.String(cloudformation.ExecutionStatusAvailable),
+					},
+				},
+			},
+			nil,
+		).
+		On(
+			"GetTemplateWithContext",
+			&cloudformation.GetTemplateInput{
+				ChangeSetName: aws.String(mockChangeSetCreateName),
+				StackName:     aws.String(stack.Name),
+				TemplateStage: aws.String(cloudformation.TemplateStageOriginal),
+			},
+		).
+		Return(
+			&cloudformation.GetTemplateOutput{
+				TemplateBody: aws.String(mockStackTemplate),
+			},
+			nil,
+		).
+		On(
+			"DescribeChangeSetWithContext",
+			&cloudformation.DescribeChangeSetInput{
+				ChangeSetName: aws.String(mockChangeSetCreateName),
+				StackName:     aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.DescribeChangeSetOutput{
+				ChangeSetName: aws.String(mockChangeSetCreateName),
+				Capabilities: []*string{
+					aws.String(cloudformation.CapabilityCapabilityAutoExpand),
+					aws.String(cloudformation.CapabilityCapabilityNamedIam),
+				},
+				Parameters: []*cloudformation.Parameter{
+					&cloudformation.Parameter{
+						ParameterKey:   aws.String("test-parameter-key-a"),
+						ParameterValue: aws.String("test-parameter-value-a"),
+					},
+					&cloudformation.Parameter{
+						ParameterKey:   aws.String("test-parameter-key-b"),
+						ParameterValue: aws.String("test-parameter-value-b"),
+					},
+				},
+			},
+			nil,
+		).
 		On(
 			"ExecuteChangeSetWithContext",
 			&cloudformation.ExecuteChangeSetInput{
@@ -69,32 +136,75 @@ func Test_Deploy_Happy_ChangeSet_Create(t *testing.T) {
 
 	client := stratus.NewClient(cfn, nil)
 
-	err := command.Deploy(context.Background(), client, stack, diff)
+	err := command.Deploy(context.Background(), client, stack)
 	assert.NoError(err)
 }
 
-func Test_Deploy_Happy_ChangeSet_Update(t *testing.T) {
+func Test_Deploy_Happy_ExistingChangeSet_Update(t *testing.T) {
 	assert := assert.New(t)
 
 	stack := &config.Stack{
 		Name: mockStackName,
 
+		Capabilities:          make([]string, 0),
+		Parameters:            make(config.StackParameters, 0),
 		TerminationProtection: true,
 
-		Policy: []byte(mockStackPolicy),
+		Policy:   []byte(mockStackPolicy),
+		Template: []byte(mockStackTemplate),
 
 		Checksum: mockChecksum,
-	}
-
-	diff := &stratus.Diff{
-		ChangeSet: &cloudformation.DescribeChangeSetOutput{
-			ChangeSetName: aws.String(mockChangeSetUpdateName),
-		},
 	}
 
 	cfn := stratus.NewCloudFormationMock()
 	defer cfn.AssertExpectations(t)
 	cfn.
+		On(
+			"ListChangeSetsWithContext",
+			&cloudformation.ListChangeSetsInput{
+				StackName: aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.ListChangeSetsOutput{
+				Summaries: []*cloudformation.ChangeSetSummary{
+					&cloudformation.ChangeSetSummary{
+						ChangeSetName:   aws.String(mockChangeSetUpdateName),
+						ExecutionStatus: aws.String(cloudformation.ExecutionStatusAvailable),
+					},
+				},
+			},
+			nil,
+		).
+		On(
+			"GetTemplateWithContext",
+			&cloudformation.GetTemplateInput{
+				ChangeSetName: aws.String(mockChangeSetUpdateName),
+				StackName:     aws.String(stack.Name),
+				TemplateStage: aws.String(cloudformation.TemplateStageOriginal),
+			},
+		).
+		Return(
+			&cloudformation.GetTemplateOutput{
+				TemplateBody: aws.String(mockStackTemplate),
+			},
+			nil,
+		).
+		On(
+			"DescribeChangeSetWithContext",
+			&cloudformation.DescribeChangeSetInput{
+				ChangeSetName: aws.String(mockChangeSetUpdateName),
+				StackName:     aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.DescribeChangeSetOutput{
+				ChangeSetName: aws.String(mockChangeSetUpdateName),
+				Capabilities:  make([]*string, 0),
+				Parameters:    make([]*cloudformation.Parameter, 0),
+			},
+			nil,
+		).
 		On(
 			"ExecuteChangeSetWithContext",
 			&cloudformation.ExecuteChangeSetInput{
@@ -129,28 +239,77 @@ func Test_Deploy_Happy_ChangeSet_Update(t *testing.T) {
 
 	client := stratus.NewClient(cfn, nil)
 
-	err := command.Deploy(context.Background(), client, stack, diff)
+	err := command.Deploy(context.Background(), client, stack)
 	assert.NoError(err)
 }
 
-func Test_Deploy_Happy_NoChangeSet(t *testing.T) {
+func Test_Deploy_Happy_NoopChangeSet(t *testing.T) {
 	assert := assert.New(t)
 
 	stack := &config.Stack{
 		Name: mockStackName,
 
+		Capabilities:          make([]string, 0),
+		Parameters:            make(config.StackParameters, 0),
 		TerminationProtection: true,
 
-		Policy: []byte(mockStackPolicy),
+		Policy:   []byte(mockStackPolicy),
+		Template: []byte(mockStackTemplate),
 
 		Checksum: mockChecksum,
 	}
 
-	diff := new(stratus.Diff)
-
 	cfn := stratus.NewCloudFormationMock()
 	defer cfn.AssertExpectations(t)
 	cfn.
+		On(
+			"ListChangeSetsWithContext",
+			&cloudformation.ListChangeSetsInput{
+				StackName: aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.ListChangeSetsOutput{
+				Summaries: []*cloudformation.ChangeSetSummary{
+					&cloudformation.ChangeSetSummary{
+						ChangeSetName:   aws.String(mockChangeSetUpdateName),
+						ExecutionStatus: aws.String(cloudformation.ExecutionStatusUnavailable),
+						Status:          aws.String(cloudformation.ChangeSetStatusFailed),
+						StatusReason:    aws.String("The submitted information didn't contain changes. Submit different information to create a change set."),
+					},
+				},
+			},
+			nil,
+		).
+		On(
+			"GetTemplateWithContext",
+			&cloudformation.GetTemplateInput{
+				ChangeSetName: aws.String(mockChangeSetUpdateName),
+				StackName:     aws.String(stack.Name),
+				TemplateStage: aws.String(cloudformation.TemplateStageOriginal),
+			},
+		).
+		Return(
+			&cloudformation.GetTemplateOutput{
+				TemplateBody: aws.String(mockStackTemplate),
+			},
+			nil,
+		).
+		On(
+			"DescribeChangeSetWithContext",
+			&cloudformation.DescribeChangeSetInput{
+				ChangeSetName: aws.String(mockChangeSetUpdateName),
+				StackName:     aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.DescribeChangeSetOutput{
+				ChangeSetName: aws.String(mockChangeSetUpdateName),
+				Capabilities:  make([]*string, 0),
+				Parameters:    make([]*cloudformation.Parameter, 0),
+			},
+			nil,
+		).
 		On(
 			"SetStackPolicyWithContext",
 			&cloudformation.SetStackPolicyInput{
@@ -170,19 +329,22 @@ func Test_Deploy_Happy_NoChangeSet(t *testing.T) {
 
 	client := stratus.NewClient(cfn, nil)
 
-	err := command.Deploy(context.Background(), client, stack, diff)
+	err := command.Deploy(context.Background(), client, stack)
 	assert.NoError(err)
 }
 
-func Test_Deploy_Happy_NoChangeSet_UploadArtefacts(t *testing.T) {
+func Test_Deploy_Happy_NoopChangeSet_UploadArtefacts(t *testing.T) {
 	assert := assert.New(t)
 
 	stack := &config.Stack{
 		Name: mockStackName,
 
+		Capabilities:          make([]string, 0),
+		Parameters:            make(config.StackParameters, 0),
 		TerminationProtection: true,
 
-		Policy: []byte(mockStackPolicy),
+		Policy:   []byte(mockStackPolicy),
+		Template: []byte(mockStackTemplate),
 
 		ArtefactBucket: mockArtefactBucket,
 		PolicyKey:      mockStackPolicyKey,
@@ -190,11 +352,57 @@ func Test_Deploy_Happy_NoChangeSet_UploadArtefacts(t *testing.T) {
 		Checksum: mockChecksum,
 	}
 
-	diff := new(stratus.Diff)
-
 	cfn := stratus.NewCloudFormationMock()
 	defer cfn.AssertExpectations(t)
 	cfn.
+		On(
+			"ListChangeSetsWithContext",
+			&cloudformation.ListChangeSetsInput{
+				StackName: aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.ListChangeSetsOutput{
+				Summaries: []*cloudformation.ChangeSetSummary{
+					&cloudformation.ChangeSetSummary{
+						ChangeSetName:   aws.String(mockChangeSetUpdateName),
+						ExecutionStatus: aws.String(cloudformation.ExecutionStatusUnavailable),
+						Status:          aws.String(cloudformation.ChangeSetStatusFailed),
+						StatusReason:    aws.String("The submitted information didn't contain changes. Submit different information to create a change set."),
+					},
+				},
+			},
+			nil,
+		).
+		On(
+			"GetTemplateWithContext",
+			&cloudformation.GetTemplateInput{
+				ChangeSetName: aws.String(mockChangeSetUpdateName),
+				StackName:     aws.String(stack.Name),
+				TemplateStage: aws.String(cloudformation.TemplateStageOriginal),
+			},
+		).
+		Return(
+			&cloudformation.GetTemplateOutput{
+				TemplateBody: aws.String(mockStackTemplate),
+			},
+			nil,
+		).
+		On(
+			"DescribeChangeSetWithContext",
+			&cloudformation.DescribeChangeSetInput{
+				ChangeSetName: aws.String(mockChangeSetUpdateName),
+				StackName:     aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.DescribeChangeSetOutput{
+				ChangeSetName: aws.String(mockChangeSetUpdateName),
+				Capabilities:  make([]*string, 0),
+				Parameters:    make([]*cloudformation.Parameter, 0),
+			},
+			nil,
+		).
 		On(
 			"SetStackPolicyWithContext",
 			&cloudformation.SetStackPolicyInput{
@@ -214,6 +422,6 @@ func Test_Deploy_Happy_NoChangeSet_UploadArtefacts(t *testing.T) {
 
 	client := stratus.NewClient(cfn, nil)
 
-	err := command.Deploy(context.Background(), client, stack, diff)
+	err := command.Deploy(context.Background(), client, stack)
 	assert.NoError(err)
 }

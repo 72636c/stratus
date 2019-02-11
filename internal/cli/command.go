@@ -12,7 +12,7 @@ import (
 var (
 	nameToCommand = map[string]Command{
 		"delete":  command.Delete,
-		"deploy":  deployAdapter,
+		"deploy":  command.Deploy,
 		"preview": previewAdapter,
 	}
 
@@ -28,19 +28,6 @@ var (
 )
 
 type Command func(context.Context, *stratus.Client, *config.Stack) error
-
-func deployAdapter(
-	ctx context.Context,
-	client *stratus.Client,
-	stack *config.Stack,
-) (err error) {
-	diff, err := command.Preview(ctx, client, stack)
-	if err != nil {
-		return err
-	}
-
-	return command.Deploy(ctx, client, stack, diff)
-}
 
 func previewAdapter(
 	ctx context.Context,
