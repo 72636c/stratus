@@ -60,6 +60,16 @@ func (stack *Stack) String() string {
 
 type StackParameters []*StackParameter
 
+func (parameters StackParameters) Contains(key, value string) bool {
+	for _, parameter := range parameters {
+		if parameter.Key == key && parameter.Value == value {
+			return true
+		}
+	}
+
+	return false
+}
+
 type StackParameter struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`

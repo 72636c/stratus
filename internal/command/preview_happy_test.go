@@ -25,6 +25,21 @@ func Test_Preview_Happy_ExistingChangeSet(t *testing.T) {
 	stack := &config.Stack{
 		Name: mockStackName,
 
+		Capabilities: []string{
+			cloudformation.CapabilityCapabilityAutoExpand,
+			cloudformation.CapabilityCapabilityNamedIam,
+		},
+		Parameters: config.StackParameters{
+			&config.StackParameter{
+				Key:   "test-parameter-key-b",
+				Value: "test-parameter-value-b",
+			},
+			&config.StackParameter{
+				Key:   "test-parameter-key-a",
+				Value: "test-parameter-value-a",
+			},
+		},
+
 		Policy:   []byte(mockStackPolicy),
 		Template: []byte(mockStackTemplate),
 
@@ -72,7 +87,25 @@ func Test_Preview_Happy_ExistingChangeSet(t *testing.T) {
 				StackName:     aws.String(stack.Name),
 			},
 		).
-		Return(new(cloudformation.DescribeChangeSetOutput), nil).
+		Return(
+			&cloudformation.DescribeChangeSetOutput{
+				Capabilities: []*string{
+					aws.String(cloudformation.CapabilityCapabilityAutoExpand),
+					aws.String(cloudformation.CapabilityCapabilityNamedIam),
+				},
+				Parameters: []*cloudformation.Parameter{
+					&cloudformation.Parameter{
+						ParameterKey:   aws.String("test-parameter-key-a"),
+						ParameterValue: aws.String("test-parameter-value-a"),
+					},
+					&cloudformation.Parameter{
+						ParameterKey:   aws.String("test-parameter-key-b"),
+						ParameterValue: aws.String("test-parameter-value-b"),
+					},
+				},
+			},
+			nil,
+		).
 		On(
 			"DescribeStacksWithContext",
 			&cloudformation.DescribeStacksInput{

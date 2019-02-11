@@ -223,7 +223,7 @@ func (client *Client) FindExistingChangeSet(
 				return nil, err
 			}
 
-			if string(stack.Template) != *templateOutput.TemplateBody {
+			if !MatchesChangeSetContents(stack, changeSetOutput, templateOutput) {
 				// TODO: raise error to indicate tampering?
 				continue
 			}
