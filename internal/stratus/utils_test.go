@@ -50,10 +50,20 @@ func Test_MatchesChangeSetSummary(t *testing.T) {
 			expected: true,
 		},
 		{
-			description: "unexpected execution status",
+			description: "noop change set",
 			summary: &cloudformation.ChangeSetSummary{
 				ChangeSetName:   aws.String(fmt.Sprintf("stratus-create-%s", expectedChecksum)),
 				ExecutionStatus: aws.String(cloudformation.ExecutionStatusUnavailable),
+				Status:          aws.String(cloudformation.ChangeSetStatusFailed),
+				StatusReason:    aws.String("The submitted information didn't contain changes. Submit different information to create a change set."),
+			},
+			expected: true,
+		},
+		{
+			description: "unexpected execution status",
+			summary: &cloudformation.ChangeSetSummary{
+				ChangeSetName:   aws.String(fmt.Sprintf("stratus-create-%s", expectedChecksum)),
+				ExecutionStatus: aws.String(cloudformation.ExecutionStatusObsolete),
 			},
 			expected: false,
 		},

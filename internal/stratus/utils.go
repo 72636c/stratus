@@ -16,6 +16,10 @@ import (
 	"github.com/72636c/stratus/internal/config"
 )
 
+const (
+	noopChangeSetStatusReason = "The submitted information didn't contain changes. Submit different information to create a change set."
+)
+
 var (
 	changeSetRegexp = regexp.MustCompile(`stratus-(create|update)-[0-9a-f]{64}`)
 )
@@ -35,9 +39,8 @@ func MatchesChangeSetSummary(
 	summary *cloudformation.ChangeSetSummary,
 ) bool {
 	return summary != nil &&
-		summary.ExecutionStatus != nil &&
-		*summary.ExecutionStatus == cloudformation.ExecutionStatusAvailable &&
 		summary.ChangeSetName != nil &&
+		isAcceptableChangeSetStatus(summary) &&
 		matchesChangeSetName(stack.Checksum, *summary.ChangeSetName)
 }
 
@@ -55,12 +58,36 @@ func getChangeSetType(name string) (ChangeSetType, error) {
 	return changeSetType, nil
 }
 
+func isAcceptableChangeSetStatus(
+	summary *cloudformation.ChangeSetSummary,
+) bool {
+	if summary.ExecutionStatus == nil {
+		return false
+	}
+
+	if *summary.ExecutionStatus == cloudformation.ExecutionStatusAvailable {
+		return true
+	}
+
+	if summary.Status == nil || summary.StatusReason == nil {
+		return false
+	}
+
+	if *summary.ExecutionStatus == cloudformation.ExecutionStatusUnavailable &&
+		*summary.Status == cloudformation.ChangeSetStatusFailed &&
+		*summary.StatusReason == noopChangeSetStatusReason {
+		return true
+	}
+
+	return false
+}
+
 func isNoopChangeSet(output *cloudformation.DescribeChangeSetOutput) bool {
 	return output != nil &&
 		output.Status != nil &&
 		output.StatusReason != nil &&
 		*output.Status == cloudformation.ChangeSetStatusFailed &&
-		*output.StatusReason == "The submitted information didn't contain changes. Submit different information to create a change set."
+		*output.StatusReason == noopChangeSetStatusReason
 }
 
 func isResourceNotReadyError(err error) bool {
