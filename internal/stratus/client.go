@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -279,18 +280,40 @@ func (client *Client) UploadArtefacts(
 	ctx context.Context,
 	stack *config.Stack,
 ) error {
-	// TODO: object content type, file extension, metadata and tagging
+	// TODO: object metadata and tagging
+
+	policyExtension := filepath.Ext(stack.PolicyKey)
+	policyContentType, ok := extensionToContentType[policyExtension]
+	if !ok {
+		return fmt.Errorf("unsupported policy extension '%s'", policyExtension)
+	}
+
+	templateExtension := filepath.Ext(stack.TemplateKey)
+	templateContentType, ok := extensionToContentType[templateExtension]
+	if !ok {
+		return fmt.Errorf("unsupported template extension '%s'", templateExtension)
+	}
+
+	policyFilename := filepath.Base(stack.PolicyKey)
+	policyContentDisposition := toContentDisposition(policyFilename)
+
+	templateFilename := filepath.Base(stack.TemplateKey)
+	templateContentDisposition := toContentDisposition(templateFilename)
 
 	policyInput := &s3.PutObjectInput{
-		Body:   bytes.NewReader(stack.Policy),
-		Bucket: aws.String(stack.ArtefactBucket),
-		Key:    aws.String(stack.PolicyKey),
+		Body:               bytes.NewReader(stack.Policy),
+		Bucket:             aws.String(stack.ArtefactBucket),
+		ContentDisposition: aws.String(policyContentDisposition),
+		ContentType:        aws.String(policyContentType),
+		Key:                aws.String(stack.PolicyKey),
 	}
 
 	templateInput := &s3.PutObjectInput{
-		Body:   bytes.NewReader(stack.Template),
-		Bucket: aws.String(stack.ArtefactBucket),
-		Key:    aws.String(stack.TemplateKey),
+		Body:               bytes.NewReader(stack.Template),
+		Bucket:             aws.String(stack.ArtefactBucket),
+		ContentDisposition: aws.String(templateContentDisposition),
+		ContentType:        aws.String(templateContentType),
+		Key:                aws.String(stack.TemplateKey),
 	}
 
 	group, ctx := errgroup.WithContext(ctx)
