@@ -294,18 +294,26 @@ func (client *Client) UploadArtefacts(
 		return fmt.Errorf("unsupported template extension '%s'", templateExtension)
 	}
 
+	policyFilename := filepath.Base(stack.PolicyKey)
+	policyContentDisposition := toContentDisposition(policyFilename)
+
+	templateFilename := filepath.Base(stack.TemplateKey)
+	templateContentDisposition := toContentDisposition(templateFilename)
+
 	policyInput := &s3.PutObjectInput{
-		Body:        bytes.NewReader(stack.Policy),
-		Bucket:      aws.String(stack.ArtefactBucket),
-		ContentType: aws.String(policyContentType),
-		Key:         aws.String(stack.PolicyKey),
+		Body:               bytes.NewReader(stack.Policy),
+		Bucket:             aws.String(stack.ArtefactBucket),
+		ContentDisposition: aws.String(policyContentDisposition),
+		ContentType:        aws.String(policyContentType),
+		Key:                aws.String(stack.PolicyKey),
 	}
 
 	templateInput := &s3.PutObjectInput{
-		Body:        bytes.NewReader(stack.Template),
-		Bucket:      aws.String(stack.ArtefactBucket),
-		ContentType: aws.String(templateContentType),
-		Key:         aws.String(stack.TemplateKey),
+		Body:               bytes.NewReader(stack.Template),
+		Bucket:             aws.String(stack.ArtefactBucket),
+		ContentDisposition: aws.String(templateContentDisposition),
+		ContentType:        aws.String(templateContentType),
+		Key:                aws.String(stack.TemplateKey),
 	}
 
 	group, ctx := errgroup.WithContext(ctx)

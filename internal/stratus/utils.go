@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -212,6 +213,10 @@ func toCloudFormationTag(tag *config.StackTag) *cloudformation.Tag {
 		Key:   aws.String(tag.Key),
 		Value: aws.String(tag.Value),
 	}
+}
+
+func toContentDisposition(filename string) string {
+	return fmt.Sprintf(`attachment; filename="%s"`, strconv.Quote(filename))
 }
 
 func toS3URL(bucket, key string) string {
