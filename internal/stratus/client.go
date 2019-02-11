@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -189,7 +190,7 @@ func (client *Client) FindExistingChangeSet(
 ) (*cloudformation.DescribeChangeSetOutput, error) {
 	listOutput, err := client.listChangeSets(ctx, stack)
 	if isStackDoesNotExistError(err) {
-		return nil, nil
+		return nil, fmt.Errorf("stack '%s' does not exist", stack.Name)
 	}
 	if err != nil {
 		return nil, err
@@ -236,7 +237,7 @@ func (client *Client) FindExistingChangeSet(
 		}
 	}
 
-	return nil, nil
+	return nil, fmt.Errorf("change set '*%s*' does not exist", stack.Checksum)
 }
 
 func (client *Client) SetStackPolicy(
