@@ -8,8 +8,8 @@ const (
 	mockChecksum = "1000000000200000000030000000004000000000500000000060000000007000"
 
 	mockArtefactBucket   = "test-bucket-name"
-	mockStackPolicyKey   = "test-policy-key"
-	mockStackTemplateKey = "test-template-key"
+	mockStackPolicyKey   = "test-policy-key.json"
+	mockStackTemplateKey = "test-template-key.yaml"
 
 	mockStackName     = "test-stack-name"
 	mockStackPolicy   = `"test-stack-policy"`

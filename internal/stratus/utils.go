@@ -22,6 +22,12 @@ const (
 
 var (
 	changeSetRegexp = regexp.MustCompile(`stratus-(create|update)-[0-9a-f]{64}`)
+
+	extensionToContentType = map[string]string{
+		".json": "application/json; charset=utf-8",
+		".yaml": "application/x-yaml; charset=utf-8",
+		".yml":  "application/x-yaml; charset=utf-8",
+	}
 )
 
 func MatchesChangeSetContents(
