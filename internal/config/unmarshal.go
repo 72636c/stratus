@@ -20,32 +20,32 @@ var (
 		".yml":  yaml.UnmarshalStrict,
 	}
 
-	mappers = NewMappers()
+	mapperStore = NewMapperStore()
 )
 
-type Mappers struct {
+type MapperStore struct {
 	sync.RWMutex
 	fromPrefix map[string]Mapper
 }
 
-func NewMappers() *Mappers {
-	return &Mappers{
+func NewMapperStore() *MapperStore {
+	return &MapperStore{
 		RWMutex:    sync.RWMutex{},
 		fromPrefix: make(map[string]Mapper),
 	}
 }
 
-func (mappers *Mappers) Get(prefix string) (Mapper, bool) {
-	mappers.RLock()
-	mapper, ok := mappers.fromPrefix[prefix]
-	mappers.RUnlock()
+func (store *MapperStore) Get(prefix string) (Mapper, bool) {
+	store.RLock()
+	mapper, ok := store.fromPrefix[prefix]
+	store.RUnlock()
 
 	return mapper, ok
 }
-func (mappers *Mappers) Set(prefix string, mapper Mapper) {
-	mappers.Lock()
-	mappers.fromPrefix[prefix] = mapper
-	mappers.Unlock()
+func (store *MapperStore) Set(prefix string, mapper Mapper) {
+	store.Lock()
+	store.fromPrefix[prefix] = mapper
+	store.Unlock()
 }
 
 type Mapper func(placeholder string) (string, error)
@@ -84,10 +84,10 @@ func newAWSMapper(provider client.ConfigProvider) Mapper {
 }
 
 func Init(provider client.ConfigProvider) {
-	mappers.Set("env", envMapper)
+	mapperStore.Set("env", envMapper)
 
 	if provider != nil {
-		mappers.Set("aws", newAWSMapper(provider))
+		mapperStore.Set("aws", newAWSMapper(provider))
 	}
 }
 
@@ -178,7 +178,7 @@ func Resolve(data string) (string, error) {
 			prefix := slice[0]
 			suffix := slice[1]
 
-			mapper, ok := mappers.Get(prefix)
+			mapper, ok := mapperStore.Get(prefix)
 			if !ok {
 				return "", fmt.Errorf("unsupported placeholder '%s'", str)
 			}
