@@ -228,6 +228,10 @@ func (client *Client) FindExistingChangeSet(
 				continue
 			}
 
+			if *summary.ExecutionStatus == cloudformation.ExecutionStatusUnavailable {
+				return nil, nil
+			}
+
 			return changeSetOutput, nil
 		}
 	}
