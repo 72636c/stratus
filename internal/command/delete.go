@@ -11,9 +11,9 @@ func Delete(
 	client *stratus.Client,
 	stack *config.Stack,
 ) error {
-	output := context.Output(ctx)
+	logger := context.Logger(ctx)
 
-	output <- "Delete stack"
+	logger.Title("Delete stack")
 
 	return client.DeleteStack(ctx, stack)
 }

@@ -4,5 +4,5 @@ type contextKey int
 
 const (
 	_ contextKey = iota
-	outputKey
+	loggerKey
 )
