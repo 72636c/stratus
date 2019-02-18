@@ -63,6 +63,18 @@ func (client *CloudFormationMock) DescribeStacksWithContext(
 	return args.Get(0).(*cloudformation.DescribeStacksOutput), args.Error(1)
 }
 
+func (client *CloudFormationMock) DescribeStackEventsWithContext(
+	_ aws.Context,
+	input *cloudformation.DescribeStackEventsInput,
+	_ ...request.Option,
+) (*cloudformation.DescribeStackEventsOutput, error) {
+	args := client.Called(input)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*cloudformation.DescribeStackEventsOutput), args.Error(1)
+}
+
 func (client *CloudFormationMock) ExecuteChangeSetWithContext(
 	_ aws.Context,
 	input *cloudformation.ExecuteChangeSetInput,

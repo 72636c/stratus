@@ -118,6 +118,18 @@ func Test_Deploy_Happy_ExistingChangeSet_Create(t *testing.T) {
 		).
 		Return(nil).
 		On(
+			"DescribeStackEventsWithContext",
+			&cloudformation.DescribeStackEventsInput{
+				StackName: aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.DescribeStackEventsOutput{
+				StackEvents: make([]*cloudformation.StackEvent, 0),
+			},
+			nil,
+		).
+		On(
 			"SetStackPolicyWithContext",
 			&cloudformation.SetStackPolicyInput{
 				StackName:       aws.String(mockStackName),
@@ -220,6 +232,18 @@ func Test_Deploy_Happy_ExistingChangeSet_Update(t *testing.T) {
 			},
 		).
 		Return(nil).
+		On(
+			"DescribeStackEventsWithContext",
+			&cloudformation.DescribeStackEventsInput{
+				StackName: aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.DescribeStackEventsOutput{
+				StackEvents: make([]*cloudformation.StackEvent, 0),
+			},
+			nil,
+		).
 		On(
 			"SetStackPolicyWithContext",
 			&cloudformation.SetStackPolicyInput{
