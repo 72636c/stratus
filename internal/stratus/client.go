@@ -12,10 +12,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/72636c/stratus/internal/config"
 	"github.com/72636c/stratus/internal/context"
+	"github.com/72636c/stratus/internal/errgroup"
 )
 
 var (
