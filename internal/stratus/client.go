@@ -2,7 +2,6 @@ package stratus
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,9 +12,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/72636c/stratus/internal/config"
+	"github.com/72636c/stratus/internal/context"
+	"github.com/72636c/stratus/internal/errgroup"
 )
 
 var (
@@ -161,16 +161,32 @@ func (client *Client) ExecuteChangeSet(
 	stack *config.Stack,
 	name string,
 ) error {
+	logger := context.Logger(ctx)
+
 	executeInput := &cloudformation.ExecuteChangeSetInput{
 		ChangeSetName:      aws.String(name),
 		ClientRequestToken: nil,
 		StackName:          aws.String(stack.Name),
 	}
 
-	describeInput := &cloudformation.DescribeStacksInput{
+	eventsInput := &cloudformation.DescribeStackEventsInput{
+		StackName: aws.String(stack.Name),
+	}
+
+	waitInput := &cloudformation.DescribeStacksInput{
 		NextToken: nil,
 		StackName: aws.String(stack.Name),
 	}
+
+	eventsOutput, err := client.cfn.DescribeStackEventsWithContext(
+		ctx,
+		eventsInput,
+	)
+	if err != nil {
+		return err
+	}
+
+	eventCache := NewStackEventCache(eventsOutput.StackEvents)
 
 	waiter, err := client.newChangeSetExecuteCompleteWaiter(name)
 	if err != nil {
@@ -182,7 +198,25 @@ func (client *Client) ExecuteChangeSet(
 		return err
 	}
 
-	return waiter(ctx, describeInput)
+	option := func(req *request.Request) {
+		eventsOutput, err := client.cfn.DescribeStackEventsWithContext(
+			ctx,
+			eventsInput,
+		)
+		if err != nil {
+			// continue without failing request
+			return
+		}
+
+		events := eventCache.Diff(eventsOutput.StackEvents)
+
+		for index := len(events) - 1; index >= 0; index-- {
+			logger.Data(formatStackEvent(events[index]))
+		}
+	}
+
+	return waiter(ctx, waitInput, delay, request.WithWaiterRequestOptions(option))
+
 }
 
 func (client *Client) FindExistingChangeSet(

@@ -11,19 +11,19 @@ func Stage(
 	client *stratus.Client,
 	stack *config.Stack,
 ) (*stratus.Diff, error) {
-	output := context.Output(ctx)
+	logger := context.Logger(ctx)
 
-	output <- "Validate template"
+	logger.Title("Validate template")
 
 	validateOutput, err := client.ValidateTemplate(ctx, stack)
 	if err != nil {
 		return nil, err
 	}
 
-	output <- validateOutput
+	logger.Data(validateOutput)
 
 	if stack.ShouldUpload() {
-		output <- "Upload artefacts"
+		logger.Title("Upload artefacts")
 
 		err = client.UploadArtefacts(ctx, stack)
 		if err != nil {
@@ -31,21 +31,21 @@ func Stage(
 		}
 	}
 
-	output <- "Create change set"
+	logger.Title("Create change set")
 
 	describeOutput, err := client.CreateChangeSet(ctx, stack)
 	if err != nil {
 		return nil, err
 	}
 
-	output <- "Diff stack"
+	logger.Title("Diff stack")
 
 	diffOutput, err := client.Diff(ctx, stack, describeOutput)
 	if err != nil {
 		return nil, err
 	}
 
-	output <- diffOutput
+	logger.Data(diffOutput)
 
 	return diffOutput, nil
 }

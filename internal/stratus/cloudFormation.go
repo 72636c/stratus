@@ -30,6 +30,12 @@ type CloudFormation interface {
 		...request.Option,
 	) (*cloudformation.DescribeChangeSetOutput, error)
 
+	DescribeStackEventsWithContext(
+		aws.Context,
+		*cloudformation.DescribeStackEventsInput,
+		...request.Option,
+	) (*cloudformation.DescribeStackEventsOutput, error)
+
 	DescribeStacksWithContext(
 		aws.Context,
 		*cloudformation.DescribeStacksInput,

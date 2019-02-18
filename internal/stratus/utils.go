@@ -65,6 +65,15 @@ func getChangeSetType(name string) (ChangeSetType, error) {
 	return changeSetType, nil
 }
 
+func formatStackEvent(event *cloudformation.StackEvent) string {
+	return fmt.Sprintf(
+		"%s [%s] %s",
+		*event.ResourceType,
+		*event.LogicalResourceId,
+		*event.ResourceStatus,
+	)
+}
+
 func isAcceptableChangeSetStatus(
 	summary *cloudformation.ChangeSetSummary,
 ) bool {
