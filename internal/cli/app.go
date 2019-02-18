@@ -110,9 +110,7 @@ func (app *App) Do(ctx context.Context) error {
 		app.logger.Title("Stratus.[%d].StackConfig", index)
 		app.logger.Data(stack)
 
-		ctx := context.WithLogger(ctx, app.logger)
-
-		err := app.command(ctx, app.client, stack)
+		err := app.command(context.WithLogger(ctx, app.logger), app.client, stack)
 		if err != nil {
 			return err
 		}
