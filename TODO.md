@@ -4,11 +4,6 @@
 
 - DriftInformation
 
-## Status detection
-
-- Stream stack events to console
-- StackStatus, StackStatusReason?
-
 ## Package command
 
 <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-cli-package.html>
