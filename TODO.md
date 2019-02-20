@@ -1,46 +1,58 @@
 # TODO
 
-## Drift detection
+## Next
 
-- DriftInformation
+1. Package command
 
-## Package command
+   <https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-cli-package.html>
 
-<https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-cli-package.html>
+1. Nested stacks
 
-## Change set descriptions
+    <https://theithollow.com/2018/01/29/using-change-sets-nested-cloudformation-stacks/>
 
-```yaml
-stacks:
-  - changeSetDescription: ${{env:COMMIT_MESSAGE}}
-```
+1. Capability validation
 
-## Override stack policy
+   <https://docs.aws.amazon.com/cli/latest/reference/cloudformation/validate-template.html>
 
-```yaml
-defaults:
-  # how to make this one-time use?
-  stackPolicyDuringChangeSet:
-    StackPolicyBody: null
-    StackPolicyURL: null
-```
+1. Drift detection
 
-## Cost threshold
+   - DriftInformation
 
-```yaml
-defaults:
-  limitCost:
-    maximum: 1000
-```
+## Backlog
 
-## Exit codes
+1. Change set descriptions
 
-```yaml
-defaults:
-  exitCodes:
-    # enforce limitCost
-    onCost: 2
+   ```yaml
+   stacks:
+     - changeSetDescription: ${{env:COMMIT_MESSAGE}}
+   ```
 
-    # do not proceed blindly if drift is detected
-    onDrift: 1
-```
+1. Override stack policy
+
+   ```yaml
+   defaults:
+     # how to make this one-time use?
+     stackPolicyDuringChangeSet:
+       StackPolicyBody: null
+       StackPolicyURL: null
+   ```
+
+1. Cost threshold
+
+   ```yaml
+   defaults:
+     limitCost:
+       maximum: 1000
+   ```
+
+1. Exit codes
+
+   ```yaml
+   defaults:
+     exitCodes:
+       # enforce limitCost
+       onCost: 2
+
+       # do not proceed blindly if drift is detected
+       onDrift: 1
+   ```
