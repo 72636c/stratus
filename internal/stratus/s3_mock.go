@@ -71,12 +71,12 @@ func compareReaders(a, b io.Reader) error {
 
 	dataA, err := ioutil.ReadAll(teeA)
 	if err != nil {
-		return fmt.Errorf("error reading a: %+v\n", err)
+		return fmt.Errorf("error reading a: %+v", err)
 	}
 
 	dataB, err := ioutil.ReadAll(teeB)
 	if err != nil {
-		return fmt.Errorf("error reading b: %+v\n", err)
+		return fmt.Errorf("error reading b: %+v", err)
 	}
 
 	equal := reflect.DeepEqual(dataA, dataB)
