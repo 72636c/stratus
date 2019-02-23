@@ -11,7 +11,7 @@ steps:
     image: golang:1.11
     commands:
       - go get -u github.com/mgechev/revive
-      - revive -config .revive.toml -exclude vendor/... -formatter stylish ./...
+      - revive -config .revive.toml -exclude vendor/... -formatter friendly ./...
       - go test -cover -v ./...
       - go vet -all -shadow ./...
     when:
@@ -22,4 +22,4 @@ steps:
 
 ---
 kind: signature
-hmac: 698ddb91ac4cdc766f3903c671f0c37ee969bc1aad03a4d18ee43ab5e60e0d39
+hmac: b44888cdd8bb1871fc6789a26bb6c976f7a124789daccefc53108ba016e3e3e2
