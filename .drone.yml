@@ -29,11 +29,11 @@ steps:
       username:
         from_secret: docker-hub.username
     when:
-      # branch:
-      #   - master
+      branch:
+        - master
       event:
         - push
 
 ---
 kind: signature
-hmac: 1962428ba8510c3f24d9cfa158117b1c078aacf76cecbb5222cf5888a3e170e9
+hmac: c86190525cba834118bfb530e6b108ff47c302d98fbb0fed10d56c8a4695ae5b
