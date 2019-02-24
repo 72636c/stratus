@@ -19,7 +19,10 @@ import (
 )
 
 var (
-	delay = request.WithWaiterDelay(request.ConstantWaiterDelay(1 * time.Second))
+	defaultOptions = []request.WaiterOption{
+		request.WithWaiterDelay(request.ConstantWaiterDelay(1 * time.Second)),
+		request.WithWaiterMaxAttempts(60 * 60),
+	}
 )
 
 type Client struct {
@@ -215,7 +218,9 @@ func (client *Client) ExecuteChangeSet(
 		}
 	}
 
-	return waiter(ctx, waitInput, delay, request.WithWaiterRequestOptions(option))
+	options := append(defaultOptions, request.WithWaiterRequestOptions(option))
+
+	return waiter(ctx, waitInput, options...)
 
 }
 
@@ -503,7 +508,7 @@ func (client *Client) waitUntilChangeSetCreateComplete(
 	}
 
 	return client.cfn.
-		WaitUntilChangeSetCreateCompleteWithContext(ctx, input, delay)
+		WaitUntilChangeSetCreateCompleteWithContext(ctx, input, defaultOptions...)
 }
 
 func (client *Client) waitUntilStackDeleteComplete(
@@ -515,5 +520,6 @@ func (client *Client) waitUntilStackDeleteComplete(
 		StackName: aws.String(stack.Name),
 	}
 
-	return client.cfn.WaitUntilStackDeleteCompleteWithContext(ctx, input, delay)
+	return client.cfn.
+		WaitUntilStackDeleteCompleteWithContext(ctx, input, defaultOptions...)
 }
