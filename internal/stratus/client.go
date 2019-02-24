@@ -21,7 +21,7 @@ import (
 var (
 	defaultOptions = []request.WaiterOption{
 		request.WithWaiterDelay(request.ConstantWaiterDelay(1 * time.Second)),
-		request.WithWaiterMaxAttempts(60 * 60),
+		request.WithWaiterMaxAttempts(60 * 60 * 2),
 	}
 )
 
