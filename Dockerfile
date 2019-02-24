@@ -29,6 +29,8 @@ CMD ["--help"]
 
 FROM alpine:latest AS final-alpine
 
+RUN apk add --no-cache ca-certificates
+
 COPY --from=builder /tmp/group /tmp/passwd /etc/
 
 COPY --from=builder /app /bin/stratus
