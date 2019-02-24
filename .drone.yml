@@ -19,13 +19,31 @@ steps:
         exclude:
           - pull_request
           - tag
-  - name: publish
+  - name: publish (static)
     image: plugins/docker
     settings:
       password:
         from_secret: docker-hub.password
       repo: 72636c/stratus
-      tags: latest
+      tags:
+        - latest
+        - latest-static
+      target: final-static
+      username:
+        from_secret: docker-hub.username
+    when:
+      branch:
+        - master
+      event:
+        - push
+  - name: publish (alpine)
+    image: plugins/docker
+    settings:
+      password:
+        from_secret: docker-hub.password
+      repo: 72636c/stratus
+      tags: latest-alpine
+      target: final-alpine
       username:
         from_secret: docker-hub.username
     when:
@@ -36,4 +54,4 @@ steps:
 
 ---
 kind: signature
-hmac: c86190525cba834118bfb530e6b108ff47c302d98fbb0fed10d56c8a4695ae5b
+hmac: e417ae99fd2b31c5cecedf477300f628788c0eeffcbfc557abc5c1adfea55dcf
