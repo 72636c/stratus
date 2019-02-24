@@ -1,0 +1,9 @@
+Resources:
+  two-1:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/sample-bucket-name/f5308839b46c8e629e61935897fb6308.template
+  two-2:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/sample-bucket-name/f5308839b46c8e629e61935897fb6308.template

@@ -1,0 +1,5 @@
+Resources:
+  three:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: template3.yaml

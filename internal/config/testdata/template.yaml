@@ -1,0 +1,9 @@
+Resources:
+  two-1:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: template2.yaml
+  two-2:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: template2.yaml

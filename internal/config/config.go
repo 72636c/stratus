@@ -50,6 +50,7 @@ type Stack struct {
 	Checksum string `json:"-"`
 }
 
+// TODO: how about local artefacts?
 func (stack *Stack) ShouldUpload() bool {
 	return stack.ArtefactBucket != ""
 }

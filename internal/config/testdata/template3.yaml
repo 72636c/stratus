@@ -1,0 +1,16 @@
+Resources:
+  Parameter1:
+    Type: AWS::SSM::Parameter
+    Properties:
+      !Transform {
+        Name: 'AWS::Include',
+        Parameters: { Location: 'parameter.yaml' },
+      }
+
+  Parameter2:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Fn::Transform:
+        Name: AWS::Include
+        Parameters:
+          Location: parameter.yaml

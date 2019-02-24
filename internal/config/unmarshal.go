@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	extensionToUnmarshal = map[string]func([]byte, interface{}) error{
+	extensionToUnmarshal = map[string]Unmarshaller{
 		".json": json.Unmarshal,
 		".yaml": yaml.UnmarshalStrict,
 		".yml":  yaml.UnmarshalStrict,
@@ -22,6 +22,8 @@ var (
 
 	mapperStore = NewMapperStore()
 )
+
+type Unmarshaller func([]byte, interface{}) error
 
 type MapperStore struct {
 	sync.RWMutex

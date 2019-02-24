@@ -128,3 +128,37 @@ func fromRawStackTags(raw RawStackTags) StackTags {
 
 	return slice
 }
+
+type Temp struct {
+	files    []string
+	template []byte
+}
+
+func fromRawStackTemplate(raw []byte, unmarshal Unmarshaller) (*Temp, error) {
+	var model *struct {
+		Resources map[string]*struct {
+			Type       string                 `yaml:"Type"`
+			Properties map[string]interface{} `yaml:"Properties"`
+		} `yaml:"Resources"`
+	}
+
+	err := unmarshal(raw, &model)
+	if err != nil {
+		return nil, err
+	}
+
+	files := make([]string, 0)
+
+	for name, resource := range model.Resources {
+		if resource.Type == "lol" {
+			files = append(files, name)
+		}
+	}
+
+	temp := &Temp{
+		files:    files,
+		template: raw,
+	}
+
+	return temp, nil
+}

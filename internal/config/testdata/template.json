@@ -1,0 +1,62 @@
+{
+  "Resources": {
+    "AWSApiGatewayRestApi": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "BodyS3Location": "lol"
+      }
+    },
+    "AWSAppSyncGraphQLSchema": {
+      "Type": "AWS::AppSync::GraphQLSchema",
+      "Properties": {
+        "RequestMappingTemplateS3Location": "lol",
+        "ResponseMappingTemplateS3Location": "lol"
+      }
+    },
+    "AWSCloudFormationStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateURL": "lol"
+      }
+    },
+    "AWSElasticBeanstalkApplicationVersion": {
+      "Type": "AWS::ElasticBeanstalk::ApplicationVersion",
+      "Properties": {
+        "SourceBundle": "lol"
+      }
+    },
+    "AWSLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": "lol"
+      }
+    },
+    "AWSServerlessApi": {
+      "Type": "AWS::Serverless::Api",
+      "Properties": {
+        "BodyS3Location": "DefinitionUri"
+      }
+    },
+    "AWSServerlessFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "CodeUri": "lol"
+      }
+    }
+  },
+  "Transform": {
+    "Name": "AWS::Include",
+    "Parameters": {
+      "Location": "lol"
+    }
+  },
+  "Test": {
+    "1": [
+      "hello",
+      "hello",
+      { "2": "hello" },
+      "hello",
+      [123456, "hello", [[{ "a": "b" }]]]
+    ]
+  }
+}
