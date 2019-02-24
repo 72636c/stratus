@@ -19,7 +19,21 @@ steps:
         exclude:
           - pull_request
           - tag
+  - name: publish
+    image: plugins/docker
+    settings:
+      password:
+        from_secret: docker-hub.password
+      repo: 72636c/stratus
+      tags: latest
+      username:
+        from_secret: docker-hub.username
+    when:
+      # branch:
+      #   - master
+      event:
+        - push
 
 ---
 kind: signature
-hmac: b44888cdd8bb1871fc6789a26bb6c976f7a124789daccefc53108ba016e3e3e2
+hmac: 1962428ba8510c3f24d9cfa158117b1c078aacf76cecbb5222cf5888a3e170e9
