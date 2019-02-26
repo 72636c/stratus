@@ -14,6 +14,9 @@ steps:
       - go test -cover -v ./...
       - go vet -all -shadow ./...
     when:
+      branch:
+        exclude:
+          - master
       event:
         exclude:
           - pull_request
@@ -59,4 +62,4 @@ steps:
 
 ---
 kind: signature
-hmac: 535226e1ae51a447673030b4660642980999ec79175fb9de5360769f35683479
+hmac: 46c839a5509ed16b6bc7d4f70344154efe5cf679d9219d1b73125fae7c9a30ff
