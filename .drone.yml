@@ -8,9 +8,8 @@ platform:
 
 steps:
   - name: test
-    image: golang:1.11
+    image: 72636c/golang:1.11
     commands:
-      - go get -u github.com/mgechev/revive
       - revive -config .revive.toml -exclude vendor/... -formatter friendly ./...
       - go test -cover -v ./...
       - go vet -all -shadow ./...
@@ -19,6 +18,7 @@ steps:
         exclude:
           - pull_request
           - tag
+
   - name: publish (static)
     image: plugins/docker
     depends_on:
@@ -38,6 +38,7 @@ steps:
         - master
       event:
         - push
+
   - name: publish (alpine)
     image: plugins/docker
     depends_on:
@@ -58,4 +59,4 @@ steps:
 
 ---
 kind: signature
-hmac: 081718733c3f8a35eaf29de2ffcd04570dce44cca1f41e773f83ca5a5649d77a
+hmac: 535226e1ae51a447673030b4660642980999ec79175fb9de5360769f35683479
