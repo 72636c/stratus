@@ -21,6 +21,8 @@ steps:
           - tag
   - name: publish (static)
     image: plugins/docker
+    depends_on:
+      - clone
     settings:
       password:
         from_secret: docker-hub.password
@@ -38,6 +40,8 @@ steps:
         - push
   - name: publish (alpine)
     image: plugins/docker
+    depends_on:
+      - clone
     settings:
       password:
         from_secret: docker-hub.password
