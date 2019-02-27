@@ -11,10 +11,10 @@ Simple layer for managing CloudFormation stacks in CI/CD.
 ```shell
 stratus --help
 
-# Stage change set
+# Create change set
 stratus stage
 
-# Deploy change set
+# Execute change set
 stratus deploy
 
 # Delete stack
