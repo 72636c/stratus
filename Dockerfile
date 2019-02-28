@@ -1,4 +1,4 @@
-FROM golang:1.11-alpine AS builder
+FROM golang:1.12-alpine AS builder
 
 RUN \
   echo 'nobody:x:65534:65534:nobody:/:' > /tmp/passwd && \
@@ -16,7 +16,7 @@ COPY stratus.go ./
 
 RUN CGO_ENABLED=0 go build -installsuffix 'static' -o /app .
 
-FROM gcr.io/distroless/static AS final-static
+FROM gcr.io/distroless/static:latest AS final-static
 
 COPY --from=builder /tmp/group /tmp/passwd /etc/
 
