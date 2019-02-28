@@ -23,7 +23,7 @@ func Deploy(
 	if changeSet != nil {
 		logger.Title("Execute change set")
 
-		err = client.ExecuteChangeSet(ctx, stack, *changeSet.ChangeSetName)
+		err := client.ExecuteChangeSet(ctx, stack, *changeSet.ChangeSetName)
 		if err != nil {
 			return err
 		}
