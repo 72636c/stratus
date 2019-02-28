@@ -8,11 +8,12 @@ platform:
 
 steps:
   - name: test
-    image: 72636c/golang:1.11
+    image: 72636c/golang:1.12
     commands:
       - revive -config .revive.toml -exclude vendor/... -formatter friendly ./...
       - go test -cover -v ./...
-      - go vet -all -shadow ./...
+      - go vet ./...
+      - go vet -vettool="$(which shadow)" ./...
     when:
       branch:
         exclude:
@@ -62,4 +63,4 @@ steps:
 
 ---
 kind: signature
-hmac: 46c839a5509ed16b6bc7d4f70344154efe5cf679d9219d1b73125fae7c9a30ff
+hmac: a8f4576e5ea7f201f9b22da50a46dc6cbe80c74ca1bc0391a6f13cafa9df43cd
