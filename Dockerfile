@@ -18,13 +18,15 @@ RUN CGO_ENABLED=0 go build -installsuffix 'static' -o /app .
 
 FROM gcr.io/distroless/base:debug AS final-base
 
+RUN ["/busybox/sh", "-c", "ln -s /busybox/sh /bin/sh"]
+
 COPY --from=builder /tmp/group /tmp/passwd /etc/
 
 COPY --from=builder /app /bin/stratus
 
 USER nobody:nobody
 
-ENTRYPOINT ["/busybox/sh"]
+ENTRYPOINT ["/bin/sh"]
 
 FROM gcr.io/distroless/static:latest AS final-static
 
