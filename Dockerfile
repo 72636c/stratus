@@ -16,7 +16,7 @@ COPY stratus.go ./
 
 RUN CGO_ENABLED=0 go build -installsuffix 'static' -o /app .
 
-FROM gcr.io/distroless/static:latest AS final-static
+FROM gcr.io/distroless/base:debug AS final-base
 
 COPY --from=builder /tmp/group /tmp/passwd /etc/
 
@@ -24,12 +24,9 @@ COPY --from=builder /app /bin/stratus
 
 USER nobody:nobody
 
-ENTRYPOINT ["/bin/stratus"]
-CMD ["--help"]
+ENTRYPOINT ["/busybox/sh"]
 
-FROM alpine:latest AS final-alpine
-
-RUN apk add --no-cache ca-certificates
+FROM gcr.io/distroless/static:latest AS final-static
 
 COPY --from=builder /tmp/group /tmp/passwd /etc/
 
