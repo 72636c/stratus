@@ -7,6 +7,20 @@ platform:
   arch: amd64
 
 steps:
+  - name: build
+    image: plugins/docker
+    depends_on:
+      - clone
+    settings:
+      dry_run: true
+      repo: 72636c/stratus
+    when:
+      branch:
+        exclude:
+          - master
+      event:
+        - push
+
   - name: test
     image: 72636c/golang:1.12
     commands:
@@ -14,16 +28,16 @@ steps:
       - go test -cover -v ./...
       - go vet ./...
       - go vet -vettool="$(command -v shadow)" ./...
+    depends_on:
+      - clone
     when:
       branch:
         exclude:
           - master
       event:
-        exclude:
-          - pull_request
-          - tag
+        - push
 
-  - name: publish (base)
+  - name: push (base)
     image: plugins/docker
     depends_on:
       - clone
@@ -41,7 +55,7 @@ steps:
       event:
         - push
 
-  - name: publish (static)
+  - name: push (static)
     image: plugins/docker
     depends_on:
       - clone
@@ -63,4 +77,4 @@ steps:
 
 ---
 kind: signature
-hmac: 576eb13afced812f7dbe55379f91b92fbaa41bbb6ac8b6b6429d61433272a89c
+hmac: 991f7dd28e4c0e3c9d2cd5dbc964d684c5f81e88e4289c751519988360d35d70
