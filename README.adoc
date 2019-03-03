@@ -21,26 +21,28 @@ stratus deploy
 stratus delete
 ```
 
-=== Docker
+=== Docker (sh)
 
 ```shell
-docker build --tag stratus .
+docker run                                    \
+--env AWS_REGION=ap-southeast-2               \
+--rm                                          \
+--volume "$(pwd):/tmp"                        \
+--volume ~/.aws/credentials:/.aws/credentials \
+--workdir /tmp                                \
+72636c/stratus --help
+```
 
-# Linux, macOS (sh)
-docker run      \
---env-file .env \
---rm            \
---volume .:/tmp \
---workdir /tmp  \
-stratus --help
+=== Docker (PowerShell)
 
-# Windows (PowerShell)
-docker run           `
---env-file .env      `
---rm                 `
---volume ${pwd}:/tmp `
---workdir /tmp       `
-stratus --help
+```powershell
+docker run                                    `
+--env AWS_REGION=ap-southeast-2               `
+--rm                                          `
+--volume "${pwd}:/tmp"                        `
+--volume ~/.aws/credentials:/.aws/credentials `
+--workdir /tmp                                `
+72636c/stratus --help
 ```
 
 == Config
