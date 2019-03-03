@@ -27,9 +27,7 @@ USER nobody:nobody
 ENTRYPOINT ["/bin/stratus"]
 CMD ["--help"]
 
-FROM alpine:latest AS final-alpine
-
-RUN apk add --no-cache ca-certificates
+FROM gcr.io/distroless/base:debug AS final-busybox
 
 COPY --from=builder /tmp/group /tmp/passwd /etc/
 
@@ -37,5 +35,4 @@ COPY --from=builder /app /bin/stratus
 
 USER nobody:nobody
 
-ENTRYPOINT ["/bin/stratus"]
-CMD ["--help"]
+ENTRYPOINT ["/busybox/sh"]

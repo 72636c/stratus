@@ -43,7 +43,7 @@ steps:
       event:
         - push
 
-  - name: publish (alpine)
+  - name: publish (busybox)
     image: plugins/docker
     depends_on:
       - clone
@@ -51,8 +51,8 @@ steps:
       password:
         from_secret: docker-hub.password
       repo: 72636c/stratus
-      tags: latest-alpine
-      target: final-alpine
+      tags: latest-busybox
+      target: final-busybox
       username:
         from_secret: docker-hub.username
     when:
@@ -63,4 +63,4 @@ steps:
 
 ---
 kind: signature
-hmac: 10adaa0b39096ec9abe053c56316c7e8bae24c12a631fb4b0c8b03944d73645b
+hmac: c62534567f9d79f65082bf6bc179648463d856e95a2ee0e3eb7bb8d41d549b75
