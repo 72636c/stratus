@@ -130,6 +130,22 @@ func Test_Deploy_Happy_ExistingChangeSet_Create(t *testing.T) {
 			nil,
 		).
 		On(
+			"DescribeStacksWithContext",
+			&cloudformation.DescribeStacksInput{
+				StackName: aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.DescribeStacksOutput{
+				Stacks: []*cloudformation.Stack{
+					&cloudformation.Stack{
+						Outputs: make([]*cloudformation.Output, 0),
+					},
+				},
+			},
+			nil,
+		).
+		On(
 			"SetStackPolicyWithContext",
 			&cloudformation.SetStackPolicyInput{
 				StackName:       aws.String(mockStackName),
@@ -245,6 +261,22 @@ func Test_Deploy_Happy_ExistingChangeSet_Update(t *testing.T) {
 			nil,
 		).
 		On(
+			"DescribeStacksWithContext",
+			&cloudformation.DescribeStacksInput{
+				StackName: aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.DescribeStacksOutput{
+				Stacks: []*cloudformation.Stack{
+					&cloudformation.Stack{
+						Outputs: make([]*cloudformation.Output, 0),
+					},
+				},
+			},
+			nil,
+		).
+		On(
 			"SetStackPolicyWithContext",
 			&cloudformation.SetStackPolicyInput{
 				StackName:       aws.String(mockStackName),
@@ -331,6 +363,22 @@ func Test_Deploy_Happy_NoopChangeSet(t *testing.T) {
 				ChangeSetName: aws.String(mockChangeSetUpdateName),
 				Capabilities:  make([]*string, 0),
 				Parameters:    make([]*cloudformation.Parameter, 0),
+			},
+			nil,
+		).
+		On(
+			"DescribeStacksWithContext",
+			&cloudformation.DescribeStacksInput{
+				StackName: aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.DescribeStacksOutput{
+				Stacks: []*cloudformation.Stack{
+					&cloudformation.Stack{
+						Outputs: make([]*cloudformation.Output, 0),
+					},
+				},
 			},
 			nil,
 		).
@@ -424,6 +472,22 @@ func Test_Deploy_Happy_NoopChangeSet_UploadArtefacts(t *testing.T) {
 				ChangeSetName: aws.String(mockChangeSetUpdateName),
 				Capabilities:  make([]*string, 0),
 				Parameters:    make([]*cloudformation.Parameter, 0),
+			},
+			nil,
+		).
+		On(
+			"DescribeStacksWithContext",
+			&cloudformation.DescribeStacksInput{
+				StackName: aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.DescribeStacksOutput{
+				Stacks: []*cloudformation.Stack{
+					&cloudformation.Stack{
+						Outputs: make([]*cloudformation.Output, 0),
+					},
+				},
 			},
 			nil,
 		).

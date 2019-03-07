@@ -86,6 +86,18 @@ func (client *Client) CreateChangeSet(
 	return client.describeChangeSet(ctx, stack, name)
 }
 
+func (client *Client) DescribeOutputs(
+	ctx context.Context,
+	stack *config.Stack,
+) ([]*cloudformation.Output, error) {
+	output, err := client.describeStack(ctx, stack)
+	if err != nil {
+		return nil, err
+	}
+
+	return output.Outputs, nil
+}
+
 func (client *Client) DeleteStack(
 	ctx context.Context,
 	stack *config.Stack,
@@ -221,7 +233,6 @@ func (client *Client) ExecuteChangeSet(
 	options := append(defaultOptions, request.WithWaiterRequestOptions(option))
 
 	return waiter(ctx, waitInput, options...)
-
 }
 
 func (client *Client) FindExistingChangeSet(
