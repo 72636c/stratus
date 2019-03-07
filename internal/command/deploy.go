@@ -29,6 +29,15 @@ func Deploy(
 		}
 	}
 
+	logger.Title("Describe outputs")
+
+	outputs, err := client.DescribeOutputs(ctx, stack)
+	if err != nil {
+		return err
+	}
+
+	logger.Data(outputs)
+
 	logger.Title("Set stack policy")
 
 	err = client.SetStackPolicy(ctx, stack)
