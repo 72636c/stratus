@@ -45,7 +45,7 @@ steps:
       password:
         from_secret: docker-hub.password
       repo: 72636c/stratus
-      tags: latest-base
+      tags: base
       target: final-base
       username:
         from_secret: docker-hub.username
@@ -65,7 +65,7 @@ steps:
       repo: 72636c/stratus
       tags:
         - latest
-        - latest-static
+        - static
       target: final-static
       username:
         from_secret: docker-hub.username
@@ -77,4 +77,4 @@ steps:
 
 ---
 kind: signature
-hmac: 991f7dd28e4c0e3c9d2cd5dbc964d684c5f81e88e4289c751519988360d35d70
+hmac: 514108390b23d037b12543b86af13f5039d576843aeab4a29b3519547f0bd4f6
