@@ -19,8 +19,8 @@ func fromRawConfig(rawConfig *RawConfig, path string) (*Config, error) {
 	return config, nil
 }
 
-func fromRawStacks(rawConfig *RawConfig, path string) ([]*Stack, error) {
-	slice := make([]*Stack, len(rawConfig.Stacks))
+func fromRawStacks(rawConfig *RawConfig, path string) (Stacks, error) {
+	slice := make(Stacks, len(rawConfig.Stacks))
 
 	for index, stack := range rawConfig.Stacks {
 		var err error

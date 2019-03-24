@@ -9,7 +9,7 @@ import (
 )
 
 type Config struct {
-	Stacks []*Stack
+	Stacks Stacks
 }
 
 func FromPath(path string) (*Config, error) {
@@ -30,6 +30,18 @@ func FromPath(path string) (*Config, error) {
 	// TODO: validate config
 
 	return fromRawConfig(raw, path)
+}
+
+type Stacks []*Stack
+
+func (stacks Stacks) Find(stackName string) (*Stack, bool) {
+	for _, stack := range stacks {
+		if stack.Name == stackName {
+			return stack, true
+		}
+	}
+
+	return nil, false
 }
 
 type Stack struct {
