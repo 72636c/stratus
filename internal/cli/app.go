@@ -23,6 +23,7 @@ const (
 
 [options]
 --file path%[2]cto%[2]cstratus.json|yaml (default .%[2]cstratus.yaml)
+--name select specific stack (default select all stacks)
 --output %[3]s (default plain)
 `
 )
@@ -40,10 +41,11 @@ func init() {
 }
 
 type App struct {
-	cfg     *config.Config
-	client  *stratus.Client
-	command Command
-	logger  log.Logger
+	cfg       *config.Config
+	client    *stratus.Client
+	command   Command
+	logger    log.Logger
+	stackName string
 }
 
 func New() (_ *App, err error) {
@@ -54,6 +56,7 @@ func New() (_ *App, err error) {
 	}()
 
 	cfgPath := flag.String("file", "stratus.yaml", "config file")
+	rawStackName := flag.String("name", "", "stack name")
 	loggerName := flag.String("output", "plain", "output format")
 
 	flag.Parse()
@@ -91,11 +94,17 @@ func New() (_ *App, err error) {
 		return nil, err
 	}
 
+	stackName, err := config.Resolve(*rawStackName)
+	if err != nil {
+		return nil, err
+	}
+
 	app := &App{
-		cfg:     cfg,
-		client:  client,
-		command: command,
-		logger:  logger,
+		cfg:       cfg,
+		client:    client,
+		command:   command,
+		logger:    logger,
+		stackName: stackName,
 	}
 
 	return app, nil
@@ -104,6 +113,22 @@ func New() (_ *App, err error) {
 func (app *App) Do(ctx context.Context) error {
 	ctx = context.WithLogger(ctx, app.logger)
 
+	if app.stackName == "" {
+		return app.doAll(ctx)
+	}
+
+	stack, ok := app.cfg.Stacks.Find(app.stackName)
+	if !ok {
+		return fmt.Errorf("stack '%s' not found in config", app.stackName)
+	}
+
+	app.logger.Title("Stratus.StackConfig")
+	app.logger.Data(stack)
+
+	return app.command(context.WithLogger(ctx, app.logger), app.client, stack)
+}
+
+func (app *App) doAll(ctx context.Context) error {
 	for index := 0; index < len(app.cfg.Stacks); index++ {
 		stack := app.cfg.Stacks[index]
 

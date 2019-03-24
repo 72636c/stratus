@@ -14,6 +14,9 @@ stratus --help
 # Create change set
 stratus stage
 
+# Create change set for specific stack
+stratus --name stratus-sample-{{env:ENVIRONMENT}}
+
 # Execute change set
 stratus deploy
 
