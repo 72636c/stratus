@@ -58,6 +58,11 @@ func Test_Resolve(t *testing.T) {
 			expected:    "serious-resource-name",
 		},
 		{
+			description:   "blocked environment variable",
+			input:         "{{env:aWs_SeCreT_aCcEsS_kEy}}",
+			expectedError: "is blocked",
+		},
+		{
 			description:   "environment variable not set",
 			input:         "{{env:UNSET_1}}",
 			expectedError: "not set",

@@ -14,6 +14,12 @@ import (
 )
 
 var (
+	blockedVariables = map[string]struct{}{
+		"AWS_ACCESS_KEY_ID":     struct{}{},
+		"AWS_SECRET_ACCESS_KEY": struct{}{},
+		"AWS_SESSION_TOKEN":     struct{}{},
+	}
+
 	extensionToUnmarshal = map[string]func([]byte, interface{}) error{
 		".json": json.Unmarshal,
 		".yaml": yaml.UnmarshalStrict,
@@ -51,6 +57,11 @@ func (store *MapperStore) Set(prefix string, mapper Mapper) {
 type Mapper func(placeholder string) (string, error)
 
 func envMapper(placeholder string) (string, error) {
+	_, ok := blockedVariables[strings.ToUpper(placeholder)]
+	if ok {
+		return "", fmt.Errorf("environment variable '%s' is blocked", placeholder)
+	}
+
 	resolved, ok := os.LookupEnv(placeholder)
 	if !ok {
 		return "", fmt.Errorf("environment variable '%s' not set", placeholder)
