@@ -15,9 +15,6 @@ steps:
       dry_run: true
       repo: 72636c/stratus
     when:
-      branch:
-        exclude:
-          - master
       event:
         - pull_request
         - push
@@ -32,9 +29,6 @@ steps:
     depends_on:
       - clone
     when:
-      branch:
-        exclude:
-          - master
       event:
         - pull_request
         - push
@@ -79,4 +73,4 @@ steps:
 
 ---
 kind: signature
-hmac: 0be9c7348f779ea2065708270dfda91ac809d1fb56d5ba86f8d96d66bace0d97
+hmac: 8aecfe8b5d4a0f71b318392ec03a78e7fe91d295545b47a28ea2f0ab28f79edc
