@@ -19,6 +19,7 @@ steps:
         exclude:
           - master
       event:
+        - pull_request
         - push
 
   - name: test
@@ -35,6 +36,7 @@ steps:
         exclude:
           - master
       event:
+        - pull_request
         - push
 
   - name: push (base)
@@ -77,4 +79,4 @@ steps:
 
 ---
 kind: signature
-hmac: 514108390b23d037b12543b86af13f5039d576843aeab4a29b3519547f0bd4f6
+hmac: 0be9c7348f779ea2065708270dfda91ac809d1fb56d5ba86f8d96d66bace0d97
