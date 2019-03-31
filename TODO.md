@@ -10,11 +10,11 @@
 
     <https://theithollow.com/2018/01/29/using-change-sets-nested-cloudformation-stacks/>
 
+## Backlog
+
 1. Drift detection
 
    - DriftInformation
-
-## Backlog
 
 1. Change set descriptions
 
