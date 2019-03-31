@@ -10,10 +10,6 @@
 
     <https://theithollow.com/2018/01/29/using-change-sets-nested-cloudformation-stacks/>
 
-1. Capability validation
-
-   <https://docs.aws.amazon.com/cli/latest/reference/cloudformation/validate-template.html>
-
 1. Drift detection
 
    - DriftInformation
