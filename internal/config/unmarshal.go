@@ -22,8 +22,8 @@ var (
 
 	extensionToUnmarshal = map[string]func([]byte, interface{}) error{
 		".json": json.Unmarshal,
-		".yaml": yaml.UnmarshalStrict,
-		".yml":  yaml.UnmarshalStrict,
+		".yaml": yaml.Unmarshal,
+		".yml":  yaml.Unmarshal,
 	}
 
 	mapperStore = NewMapperStore()
