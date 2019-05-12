@@ -63,11 +63,11 @@ func envMapper(placeholder string) (string, error) {
 	}
 
 	resolved, ok := os.LookupEnv(placeholder)
-	if !ok {
-		// LookupEnv doesn't seem to correct detect variables that have been set to
-		// empty, at least on macOS.
-		// return "", fmt.Errorf("environment variable '%s' not set", placeholder)
-	}
+	// LookupEnv doesn't seem to correct detect variables that have been set to
+	// empty, at least on macOS.
+	// if !ok {
+	// 	return "", fmt.Errorf("environment variable '%s' not set", placeholder)
+	// }
 
 	return resolved, nil
 }
