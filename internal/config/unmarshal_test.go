@@ -63,9 +63,9 @@ func Test_Resolve(t *testing.T) {
 			expectedError: "is blocked",
 		},
 		{
-			description: "environment variable not set",
-			input:       "{{env:UNSET_1}}",
-			expected:    "",
+			description:   "environment variable not set",
+			input:         "{{env:UNSET_1}}",
+			expectedError: "not set",
 		},
 		{
 			description:   "malformed placeholder",
