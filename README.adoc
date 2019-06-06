@@ -12,16 +12,13 @@ Simple layer for managing CloudFormation stacks in CI/CD.
 stratus --help
 
 # Create change set
-stratus stage
-
-# Create change set for specific stack
-stratus --name stratus-sample-{{env:ENVIRONMENT}}
+stratus --name=my-clouds stage
 
 # Execute change set
-stratus deploy
+stratus --name=my-clouds deploy
 
 # Delete stack
-stratus delete
+stratus --name=my-clouds delete
 ```
 
 === Docker (sh)
