@@ -12,6 +12,10 @@ import (
 	"github.com/72636c/stratus/internal/stratus"
 )
 
+func stringPointer(value string) *string {
+	return &value
+}
+
 func Test_MatchesChangeSetSummary(t *testing.T) {
 	expectedChecksum := "1000000000200000000030000000004000000000500000000060000000007000"
 	unexpectedChecksum := "1000000000200000000030000000004000000000500000000060000000007001"
@@ -90,6 +94,107 @@ func Test_MatchesChangeSetSummary(t *testing.T) {
 			assert := assert.New(t)
 
 			actual := stratus.MatchesChangeSetSummary(stack, testCase.summary)
+
+			assert.Equal(testCase.expected, actual)
+		})
+	}
+}
+
+func Test_MatchesChangeSetContents(t *testing.T) {
+	stack := &config.Stack{
+		Capabilities: make([]string, 0),
+		Parameters: config.StackParameters{
+			{
+				Key:   "1",
+				Value: "a",
+			},
+			{
+				Key:   "2",
+				Value: "b",
+			},
+		},
+		Template: []byte("{}"),
+	}
+
+	testCases := []struct {
+		description string
+
+		changeSet *cloudformation.DescribeChangeSetOutput
+		template  *cloudformation.GetTemplateOutput
+
+		expected bool
+	}{
+		{
+			description: "change set parameters are equal",
+			changeSet: &cloudformation.DescribeChangeSetOutput{
+				Capabilities: make([]*string, 0),
+				Parameters: []*cloudformation.Parameter{
+					{
+						ParameterKey:   stringPointer("2"),
+						ParameterValue: stringPointer("b"),
+					},
+					{
+						ParameterKey:   stringPointer("1"),
+						ParameterValue: stringPointer("a"),
+					},
+				},
+			},
+			template: &cloudformation.GetTemplateOutput{
+				TemplateBody: stringPointer("{}"),
+			},
+			expected: true,
+		},
+		{
+			description: "change set parameters are a superset",
+			changeSet: &cloudformation.DescribeChangeSetOutput{
+				Capabilities: make([]*string, 0),
+				Parameters: []*cloudformation.Parameter{
+					{
+						ParameterKey:   stringPointer("2"),
+						ParameterValue: stringPointer("b"),
+					},
+					{
+						ParameterKey:   stringPointer("1"),
+						ParameterValue: stringPointer("a"),
+					},
+					{
+						ParameterKey:   stringPointer("3"),
+						ParameterValue: stringPointer("c"),
+					},
+				},
+			},
+			template: &cloudformation.GetTemplateOutput{
+				TemplateBody: stringPointer("{}"),
+			},
+			expected: true,
+		},
+		{
+			description: "change set parameters are a subset",
+			changeSet: &cloudformation.DescribeChangeSetOutput{
+				Capabilities: make([]*string, 0),
+				Parameters: []*cloudformation.Parameter{
+					{
+						ParameterKey:   stringPointer("1"),
+						ParameterValue: stringPointer("a"),
+					},
+				},
+			},
+			template: &cloudformation.GetTemplateOutput{
+				TemplateBody: stringPointer("{}"),
+			},
+			expected: false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			assert := assert.New(t)
+
+			actual := stratus.MatchesChangeSetContents(
+				stack,
+				testCase.changeSet,
+				testCase.template,
+			)
 
 			assert.Equal(testCase.expected, actual)
 		})
