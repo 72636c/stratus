@@ -66,12 +66,20 @@ func getChangeSetType(name string) (ChangeSetType, error) {
 }
 
 func formatStackEvent(event *cloudformation.StackEvent) string {
+	resourceStatus := new(strings.Builder)
+
+	resourceStatus.WriteString(*event.ResourceStatus)
+
+	if event.ResourceStatusReason != nil {
+		resourceStatus.WriteString(" ")
+		resourceStatus.WriteString(*event.ResourceStatusReason)
+	}
+
 	return fmt.Sprintf(
-		"%s [%s] %s %s",
+		"%s [%s] %s",
 		*event.ResourceType,
 		*event.LogicalResourceId,
-		*event.ResourceStatus,
-		*event.ResourceStatusReason,
+		resourceStatus.String(),
 	)
 }
 
