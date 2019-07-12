@@ -163,12 +163,16 @@ func matchesChangeSetParameters(
 		}
 	}
 
-	if len(expected) != len(actualValues) {
+	// allow change set parameters to be a superset of config parameters, as they
+	// may include default values. loosening this check avoids the complexity of
+	// parsing default values out of the CloudFormation template.
+
+	if len(expected) > len(actualValues) {
 		return false
 	}
 
-	for _, value := range actualValues {
-		if !expected.Contains(value.Key, value.Value) {
+	for _, value := range expected {
+		if !actualValues.Contains(value.Key, value.Value) {
 			return false
 		}
 	}
