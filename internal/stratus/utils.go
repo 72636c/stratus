@@ -29,6 +29,10 @@ var (
 		".yaml": "application/x-yaml; charset=utf-8",
 		".yml":  "application/x-yaml; charset=utf-8",
 	}
+
+	// best guesses
+	maxStackStatusLength       = len(cloudformation.StackStatusUpdateRollbackCompleteCleanupInProgress)
+	maxStackResourceTypeLength = len("AWS::KinesisAnalyticsV2::ApplicationCloudWatchLoggingOption")
 )
 
 func MatchesChangeSetContents(
@@ -66,20 +70,20 @@ func getChangeSetType(name string) (ChangeSetType, error) {
 }
 
 func formatStackEvent(event *cloudformation.StackEvent) string {
-	resourceStatus := new(strings.Builder)
-
-	resourceStatus.WriteString(*event.ResourceStatus)
+	resourceStatusReason := ""
 
 	if event.ResourceStatusReason != nil {
-		resourceStatus.WriteString(" ")
-		resourceStatus.WriteString(*event.ResourceStatusReason)
+		resourceStatusReason = fmt.Sprintf("\n└ %s", *event.ResourceStatusReason)
 	}
 
 	return fmt.Sprintf(
-		"%s [%s] %s",
+		"%-*s %-*s %s%s",
+		maxStackStatusLength,
+		*event.ResourceStatus,
+		maxStackResourceTypeLength,
 		*event.ResourceType,
 		*event.LogicalResourceId,
-		resourceStatus.String(),
+		resourceStatusReason,
 	)
 }
 
