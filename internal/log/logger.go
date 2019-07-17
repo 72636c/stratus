@@ -3,17 +3,16 @@ package log
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
+	"os"
 	"strings"
 
+	"github.com/alecthomas/chroma/quick"
 	"github.com/logrusorgru/aurora"
 	"gopkg.in/yaml.v2"
 )
 
 var (
-	// not implemented; ideally roll a YAML encoder with colour terminal output
-	ColourLogger = StandardLogger
-
+	ColourLogger   = new(colourLogger)
 	StandardLogger = new(standardLogger)
 )
 
@@ -22,47 +21,85 @@ type Logger interface {
 	Title(format string, arguments ...interface{})
 }
 
-type standardLogger struct{}
+type colourLogger struct{}
 
-func (logger *standardLogger) Data(model interface{}) {
-	if reflect.TypeOf(model).Kind() == reflect.String {
+func (logger *colourLogger) Data(model interface{}) {
+	if str, ok := model.(string); ok {
+		fmt.Println(str)
+		return
+	}
+
+	str, err := encodeYAML(model)
+	if err != nil {
 		fmt.Printf("%+v\n", model)
 		return
 	}
 
-	// round trip to prevent yaml.v2 from lowercasing struct field names
+	err = quick.Highlight(os.Stdout, str, "yaml", "terminal256", "pygments")
+	if err != nil {
+		fmt.Printf("%s", str)
+	}
+}
 
-	jsonData, err := json.Marshal(model)
+func (logger *colourLogger) Title(format string, arguments ...interface{}) {
+	title := formatString(format, arguments...)
+
+	fmt.Printf("\n%s\n%s\n", aurora.Bold(title), generateLine(title))
+}
+
+type standardLogger struct{}
+
+func (logger *standardLogger) Data(model interface{}) {
+	if str, ok := model.(string); ok {
+		fmt.Println(str)
+		return
+	}
+
+	str, err := encodeYAML(model)
 	if err != nil {
 		fmt.Printf("%+v\n", model)
 		return
+	}
+
+	fmt.Printf("%s", str)
+}
+
+func (logger *standardLogger) Title(format string, arguments ...interface{}) {
+	title := formatString(format, arguments...)
+
+	fmt.Printf("\n%s\n%s\n", title, generateLine(title))
+}
+
+func formatString(format string, arguments ...interface{}) string {
+	if len(arguments) == 0 {
+		return format
+	}
+
+	return fmt.Sprintf(format, arguments...)
+}
+
+func generateLine(str string) string {
+	return strings.Repeat("─", len(str))
+}
+
+// encodeYAML performs a JSON codec round trip to prevent yaml.Marshal from
+// lowercasing struct field names.
+func encodeYAML(model interface{}) (string, error) {
+	jsonData, err := json.Marshal(model)
+	if err != nil {
+		return "", err
 	}
 
 	var jsonModel interface{}
 	err = json.Unmarshal(jsonData, &jsonModel)
 	if err != nil {
-		fmt.Printf("%+v\n", model)
-		return
+		return "", err
 	}
 
 	data, err := yaml.Marshal(jsonModel)
 	if err != nil {
-		fmt.Printf("%+v\n", model)
-		return
+		return "", err
 	}
 
-	fmt.Printf("%s", data)
-}
-
-func (logger *standardLogger) Title(format string, arguments ...interface{}) {
-	fmt.Println()
-
-	title := format
-	if len(arguments) != 0 {
-		title = fmt.Sprintf(format, arguments...)
-	}
-
-	fmt.Println(aurora.Bold(title))
-
-	fmt.Println(strings.Repeat("─", len(title)))
+	return string(data), nil
 }
