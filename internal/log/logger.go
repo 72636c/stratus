@@ -3,12 +3,17 @@ package log
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"strings"
 
-	"github.com/tidwall/pretty"
+	"github.com/logrusorgru/aurora"
+	"gopkg.in/yaml.v2"
 )
 
 var (
-	ColourLogger   = new(colourLogger)
+	// not implemented; ideally roll a YAML encoder with colour terminal output
+	ColourLogger = StandardLogger
+
 	StandardLogger = new(standardLogger)
 )
 
@@ -17,38 +22,47 @@ type Logger interface {
 	Title(format string, arguments ...interface{})
 }
 
-type colourLogger struct{}
+type standardLogger struct{}
 
-func (logger *colourLogger) Data(model interface{}) {
-	data, err := json.MarshalIndent(model, "", "  ")
+func (logger *standardLogger) Data(model interface{}) {
+	if reflect.TypeOf(model).Kind() == reflect.String {
+		fmt.Printf("%+v\n", model)
+		return
+	}
+
+	// round trip to prevent yaml.v2 from lowercasing struct field names
+
+	jsonData, err := json.Marshal(model)
 	if err != nil {
 		fmt.Printf("%+v\n", model)
 		return
 	}
 
-	fmt.Printf("%s\n", pretty.Color(data, nil))
-}
-
-func (logger *colourLogger) Title(format string, arguments ...interface{}) {
-	if len(arguments) == 0 {
-		fmt.Println(format)
+	var jsonModel interface{}
+	err = json.Unmarshal(jsonData, &jsonModel)
+	if err != nil {
+		fmt.Printf("%+v\n", model)
 		return
 	}
 
-	fmt.Println(fmt.Sprintf(format, arguments...))
-}
+	data, err := yaml.Marshal(jsonModel)
+	if err != nil {
+		fmt.Printf("%+v\n", model)
+		return
+	}
 
-type standardLogger struct{}
-
-func (logger *standardLogger) Data(model interface{}) {
-	fmt.Println(model)
+	fmt.Printf("%s", data)
 }
 
 func (logger *standardLogger) Title(format string, arguments ...interface{}) {
-	if len(arguments) == 0 {
-		fmt.Println(format)
-		return
+	fmt.Println()
+
+	title := format
+	if len(arguments) != 0 {
+		title = fmt.Sprintf(format, arguments...)
 	}
 
-	fmt.Println(fmt.Sprintf(format, arguments...))
+	fmt.Println(aurora.Bold(title))
+
+	fmt.Println(strings.Repeat("─", len(title)))
 }

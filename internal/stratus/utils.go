@@ -70,21 +70,24 @@ func getChangeSetType(name string) (ChangeSetType, error) {
 }
 
 func formatStackEvent(event *cloudformation.StackEvent) string {
-	resourceStatusReason := ""
+	builder := new(strings.Builder)
 
-	if event.ResourceStatusReason != nil {
-		resourceStatusReason = fmt.Sprintf("\n└ %s", *event.ResourceStatusReason)
-	}
-
-	return fmt.Sprintf(
-		"%-*s %-*s %s%s",
+	summary := fmt.Sprintf(
+		"%-*s %-*s %s",
 		maxStackStatusLength,
 		*event.ResourceStatus,
 		maxStackResourceTypeLength,
 		*event.ResourceType,
 		*event.LogicalResourceId,
-		resourceStatusReason,
 	)
+	builder.WriteString(summary)
+
+	if event.ResourceStatusReason != nil {
+		details := fmt.Sprintf("\n└ %s", *event.ResourceStatusReason)
+		builder.WriteString(details)
+	}
+
+	return builder.String()
 }
 
 func isAcceptableChangeSetStatus(
