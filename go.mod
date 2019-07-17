@@ -1,6 +1,7 @@
 module github.com/72636c/stratus
 
 require (
+	github.com/alecthomas/chroma v0.6.4
 	github.com/aws/aws-sdk-go v1.16.26
 	github.com/logrusorgru/aurora v0.0.0-20190428105938-cea283e61946
 	github.com/stretchr/testify v1.3.0
