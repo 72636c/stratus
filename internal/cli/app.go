@@ -122,7 +122,7 @@ func (app *App) Do(ctx context.Context) error {
 		return fmt.Errorf("stack '%s' not found in config", app.stackName)
 	}
 
-	app.logger.Title("Stratus.StackConfig")
+	app.logger.Title("Load config")
 	app.logger.Data(stack)
 
 	return app.command(context.WithLogger(ctx, app.logger), app.client, stack)
@@ -132,7 +132,7 @@ func (app *App) doAll(ctx context.Context) error {
 	for index := 0; index < len(app.cfg.Stacks); index++ {
 		stack := app.cfg.Stacks[index]
 
-		app.logger.Title("Stratus.[%d].StackConfig", index)
+		app.logger.Title("Load config %d", index)
 		app.logger.Data(stack)
 
 		err := app.command(context.WithLogger(ctx, app.logger), app.client, stack)
