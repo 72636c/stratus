@@ -52,8 +52,8 @@ type Stack struct {
 	Tags                  StackTags
 	TerminationProtection bool
 
-	Policy   []byte `json:"-"`
-	Template []byte `json:"-"`
+	Policy   []byte
+	Template []byte
 
 	ArtefactBucket string
 	PolicyKey      string `json:"-"`
