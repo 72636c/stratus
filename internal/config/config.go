@@ -52,14 +52,38 @@ type Stack struct {
 	Tags                  StackTags
 	TerminationProtection bool
 
-	Policy   []byte
-	Template []byte
+	Policy   []byte `json:"-"`
+	Template []byte `json:"-"`
 
 	ArtefactBucket string
-	PolicyKey      string `json:"-"`
-	TemplateKey    string `json:"-"`
+	PolicyKey      string
+	TemplateKey    string
 
-	Checksum string `json:"-"`
+	Checksum string
+}
+
+func (stack *Stack) Hashable() interface{} {
+	if stack == nil {
+		return stack
+	}
+
+	return struct {
+		Name string
+
+		Capabilities          []string
+		Parameters            StackParameters
+		Tags                  StackTags
+		TerminationProtection bool
+
+		Policy   []byte
+		Template []byte
+
+		ArtefactBucket string
+		PolicyKey      string `json:"-"`
+		TemplateKey    string `json:"-"`
+
+		Checksum string `json:"-"`
+	}(*stack)
 }
 
 func (stack *Stack) ShouldUpload() bool {
