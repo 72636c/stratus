@@ -15,12 +15,14 @@ func Test_CalculateChecksum(t *testing.T) {
 		expected    string
 	}{
 		{
-			description: "config.Stack",
+			description: "config.Stack.Hashable",
 			input: func() interface{} {
-				return &config.Stack{
+				stack := &config.Stack{
 					Policy:   []byte("a"),
 					Template: []byte("b"),
 				}
+
+				return stack.Hashable()
 			},
 			expected: "5dc046d563a19c16dfae96d8b530873f7b6a758af3e68bde7aefa3d96790770c",
 		},

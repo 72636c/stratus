@@ -73,7 +73,7 @@ func fromRawStack(
 		ArtefactBucket: rawConfig.Defaults.ArtefactBucket.String(),
 	}
 
-	checksum, err := CalculateChecksum(stack)
+	checksum, err := CalculateChecksum(stack.Hashable())
 	if err != nil {
 		return nil, err
 	}
