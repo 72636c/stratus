@@ -55,9 +55,9 @@ type Stack struct {
 	Policy   []byte `json:"-"`
 	Template []byte `json:"-"`
 
-	ArtefactBucket string
-	PolicyKey      string
-	TemplateKey    string
+	ArtefactBucket string `json:",omitempty"`
+	PolicyKey      string `json:",omitempty"`
+	TemplateKey    string `json:",omitempty"`
 
 	Checksum string
 }
