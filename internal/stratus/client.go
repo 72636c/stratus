@@ -109,12 +109,17 @@ func (client *Client) DeleteStack(
 		StackName:          aws.String(stack.Name),
 	}
 
-	_, err := client.cfn.DeleteStackWithContext(ctx, input)
+	option, err := client.newStackEventWaiterOption(ctx, stack)
 	if err != nil {
 		return err
 	}
 
-	return client.waitUntilStackDeleteComplete(ctx, stack)
+	_, err = client.cfn.DeleteStackWithContext(ctx, input)
+	if err != nil {
+		return err
+	}
+
+	return client.waitUntilStackDeleteComplete(ctx, stack, option)
 }
 
 func (client *Client) Diff(
@@ -176,16 +181,10 @@ func (client *Client) ExecuteChangeSet(
 	stack *config.Stack,
 	name string,
 ) error {
-	logger := context.Logger(ctx)
-
 	executeInput := &cloudformation.ExecuteChangeSetInput{
 		ChangeSetName:      aws.String(name),
 		ClientRequestToken: nil,
 		StackName:          aws.String(stack.Name),
-	}
-
-	eventsInput := &cloudformation.DescribeStackEventsInput{
-		StackName: aws.String(stack.Name),
 	}
 
 	waitInput := &cloudformation.DescribeStacksInput{
@@ -193,44 +192,22 @@ func (client *Client) ExecuteChangeSet(
 		StackName: aws.String(stack.Name),
 	}
 
-	eventsOutput, err := client.cfn.DescribeStackEventsWithContext(
-		ctx,
-		eventsInput,
-	)
-	if err != nil {
-		return err
-	}
-
-	eventCache := NewStackEventCache(eventsOutput.StackEvents)
-
 	waiter, err := client.newChangeSetExecuteCompleteWaiter(name)
 	if err != nil {
 		return err
 	}
 
-	_, err = client.cfn.ExecuteChangeSetWithContext(ctx, executeInput)
+	option, err := client.newStackEventWaiterOption(ctx, stack)
 	if err != nil {
 		return err
 	}
 
-	option := func(req *request.Request) {
-		eventsOutput, err := client.cfn.DescribeStackEventsWithContext(
-			ctx,
-			eventsInput,
-		)
-		if err != nil {
-			// continue without failing request
-			return
-		}
+	options := append(defaultOptions, option)
 
-		events := eventCache.Diff(eventsOutput.StackEvents)
-
-		for index := len(events) - 1; index >= 0; index-- {
-			logger.Data(formatStackEvent(events[index]))
-		}
+	_, err = client.cfn.ExecuteChangeSetWithContext(ctx, executeInput)
+	if err != nil {
+		return err
 	}
-
-	options := append(defaultOptions, request.WithWaiterRequestOptions(option))
 
 	return waiter(ctx, waitInput, options...)
 }
@@ -507,10 +484,50 @@ func (client *Client) newChangeSetExecuteCompleteWaiter(
 	}
 }
 
+func (client *Client) newStackEventWaiterOption(
+	ctx context.Context,
+	stack *config.Stack,
+) (request.WaiterOption, error) {
+	eventsInput := &cloudformation.DescribeStackEventsInput{
+		StackName: aws.String(stack.Name),
+	}
+
+	eventsOutput, err := client.cfn.DescribeStackEventsWithContext(
+		ctx,
+		eventsInput,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	logger := context.Logger(ctx)
+
+	eventCache := NewStackEventCache(eventsOutput.StackEvents)
+
+	option := func(*request.Request) {
+		eventsOutput, err := client.cfn.DescribeStackEventsWithContext(
+			ctx,
+			eventsInput,
+		)
+		if err != nil {
+			// continue without failing request
+			return
+		}
+
+		events := eventCache.Diff(eventsOutput.StackEvents)
+
+		for index := len(events) - 1; index >= 0; index-- {
+			logger.Data(formatStackEvent(events[index]))
+		}
+	}
+	return request.WithWaiterRequestOptions(option), nil
+}
+
 func (client *Client) waitUntilChangeSetCreateComplete(
 	ctx context.Context,
 	stack *config.Stack,
 	name string,
+	options ...request.WaiterOption,
 ) error {
 	input := &cloudformation.DescribeChangeSetInput{
 		ChangeSetName: aws.String(name),
@@ -518,19 +535,24 @@ func (client *Client) waitUntilChangeSetCreateComplete(
 		StackName:     aws.String(stack.Name),
 	}
 
+	allOptions := append(defaultOptions, options...)
+
 	return client.cfn.
-		WaitUntilChangeSetCreateCompleteWithContext(ctx, input, defaultOptions...)
+		WaitUntilChangeSetCreateCompleteWithContext(ctx, input, allOptions...)
 }
 
 func (client *Client) waitUntilStackDeleteComplete(
 	ctx context.Context,
 	stack *config.Stack,
+	options ...request.WaiterOption,
 ) error {
 	input := &cloudformation.DescribeStacksInput{
 		NextToken: nil,
 		StackName: aws.String(stack.Name),
 	}
 
+	allOptions := append(defaultOptions, options...)
+
 	return client.cfn.
-		WaitUntilStackDeleteCompleteWithContext(ctx, input, defaultOptions...)
+		WaitUntilStackDeleteCompleteWithContext(ctx, input, allOptions...)
 }
