@@ -31,6 +31,18 @@ func Test_Delete_Happy(t *testing.T) {
 		).
 		Return(nil, nil).
 		On(
+			"DescribeStackEventsWithContext",
+			&cloudformation.DescribeStackEventsInput{
+				StackName: aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.DescribeStackEventsOutput{
+				StackEvents: make([]*cloudformation.StackEvent, 0),
+			},
+			nil,
+		).
+		On(
 			"WaitUntilStackDeleteCompleteWithContext",
 			&cloudformation.DescribeStacksInput{
 				StackName: aws.String(mockStackName),
