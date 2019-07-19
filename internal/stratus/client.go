@@ -109,7 +109,7 @@ func (client *Client) DeleteStack(
 		StackName:          aws.String(stack.Name),
 	}
 
-	option, err := client.newStackEventWaiterOption(ctx, stack)
+	poll, err := client.newPollStackEvents(ctx, stack)
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,9 @@ func (client *Client) DeleteStack(
 		return err
 	}
 
-	return client.waitUntilStackDeleteComplete(ctx, stack, option)
+	err = client.waitUntilStackDeleteComplete(ctx, stack, toWaiterOption(poll))
+	poll()
+	return err
 }
 
 func (client *Client) Diff(
@@ -197,19 +199,21 @@ func (client *Client) ExecuteChangeSet(
 		return err
 	}
 
-	option, err := client.newStackEventWaiterOption(ctx, stack)
+	poll, err := client.newPollStackEvents(ctx, stack)
 	if err != nil {
 		return err
 	}
 
-	options := append(defaultOptions, option)
+	options := append(defaultOptions, toWaiterOption(poll))
 
 	_, err = client.cfn.ExecuteChangeSetWithContext(ctx, executeInput)
 	if err != nil {
 		return err
 	}
 
-	return waiter(ctx, waitInput, options...)
+	err = waiter(ctx, waitInput, options...)
+	poll()
+	return err
 }
 
 func (client *Client) FindExistingChangeSet(
@@ -484,10 +488,10 @@ func (client *Client) newChangeSetExecuteCompleteWaiter(
 	}
 }
 
-func (client *Client) newStackEventWaiterOption(
+func (client *Client) newPollStackEvents(
 	ctx context.Context,
 	stack *config.Stack,
-) (request.WaiterOption, error) {
+) (func(), error) {
 	eventsInput := &cloudformation.DescribeStackEventsInput{
 		StackName: aws.String(stack.Name),
 	}
@@ -504,7 +508,7 @@ func (client *Client) newStackEventWaiterOption(
 
 	eventCache := NewStackEventCache(eventsOutput.StackEvents)
 
-	option := func(*request.Request) {
+	poll := func() {
 		eventsOutput, err := client.cfn.DescribeStackEventsWithContext(
 			ctx,
 			eventsInput,
@@ -520,7 +524,8 @@ func (client *Client) newStackEventWaiterOption(
 			logger.Data(formatStackEvent(events[index]))
 		}
 	}
-	return request.WithWaiterRequestOptions(option), nil
+
+	return poll, nil
 }
 
 func (client *Client) waitUntilChangeSetCreateComplete(
