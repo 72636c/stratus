@@ -263,3 +263,11 @@ func toStringList(xs []*string) []string {
 
 	return slice
 }
+
+func toWaiterOption(fn func()) request.WaiterOption {
+	return request.WithWaiterRequestOptions(
+		func(*request.Request) {
+			fn()
+		},
+	)
+}
