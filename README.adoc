@@ -50,7 +50,7 @@ docker run                                    `
 Define a YAML file like so:
 
 ```yaml
-defaults:
+defaults: # optional
   artefactBucket: '{{aws:ssm:parameter:artefact-bucket}}'
 
 stacks:
@@ -58,6 +58,7 @@ stacks:
 
     capabilities: []
     parameters: []
+    region: ap-southeast-2 # optional
     terminationProtection: true
 
     policyFile: ./policy.json

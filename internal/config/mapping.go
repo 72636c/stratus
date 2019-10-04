@@ -64,6 +64,7 @@ func fromRawStack(
 
 		Capabilities:          fromRawStackCapabilities(rawStack.Capabilities),
 		Parameters:            fromRawStackParameters(rawStack.Parameters),
+		Region:                rawStack.Region.StringPointer(),
 		Tags:                  fromRawStackTags(rawStack.Tags),
 		TerminationProtection: rawStack.TerminationProtection.Bool(),
 

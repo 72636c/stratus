@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	awsclient "github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -42,10 +43,11 @@ func init() {
 
 type App struct {
 	cfg       *config.Config
-	client    *stratus.Client
 	command   Command
 	logger    log.Logger
 	stackName string
+
+	newClient func(region *string) *stratus.Client
 }
 
 func New() (_ *App, err error) {
@@ -75,18 +77,16 @@ func New() (_ *App, err error) {
 
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
-	awsConfig := aws.NewConfig().WithHTTPClient(httpClient)
+	httpConfig := aws.NewConfig().WithHTTPClient(httpClient)
 
-	provider, err := session.NewSession(awsConfig)
+	provider, err := session.NewSession(httpConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	cfnClient := cloudformation.New(provider)
-	s3Client := s3.New(provider)
+	newClient := newClientFactory(provider)
 
-	client := stratus.NewClient(cfnClient, s3Client)
-
+	// TODO: can we support per-stack regional parameters?
 	config.Init(provider)
 
 	cfg, err := config.FromPath(*cfgPath)
@@ -101,10 +101,11 @@ func New() (_ *App, err error) {
 
 	app := &App{
 		cfg:       cfg,
-		client:    client,
 		command:   command,
 		logger:    logger,
 		stackName: stackName,
+
+		newClient: newClient,
 	}
 
 	return app, nil
@@ -125,7 +126,9 @@ func (app *App) Do(ctx context.Context) error {
 	app.logger.Title("Load config")
 	app.logger.Data(stack)
 
-	return app.command(context.WithLogger(ctx, app.logger), app.client, stack)
+	client := app.newClient(stack.Region)
+
+	return app.command(context.WithLogger(ctx, app.logger), client, stack)
 }
 
 func (app *App) doAll(ctx context.Context) error {
@@ -135,11 +138,41 @@ func (app *App) doAll(ctx context.Context) error {
 		app.logger.Title("Load config %d", index)
 		app.logger.Data(stack)
 
-		err := app.command(context.WithLogger(ctx, app.logger), app.client, stack)
+		client := app.newClient(stack.Region)
+
+		err := app.command(context.WithLogger(ctx, app.logger), client, stack)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+type clientFactory func(region *string) *stratus.Client
+
+func newClientFactory(provider awsclient.ConfigProvider) clientFactory {
+	cache := make(map[*string]*stratus.Client)
+
+	return func(region *string) *stratus.Client {
+		cachedClient, ok := cache[region]
+		if ok {
+			return cachedClient
+		}
+
+		regionConfig := aws.NewConfig()
+
+		if region != nil {
+			regionConfig = regionConfig.WithRegion(*region)
+		}
+
+		cfnClient := cloudformation.New(provider, regionConfig)
+		s3Client := s3.New(provider, regionConfig)
+
+		newClient := stratus.NewClient(cfnClient, s3Client)
+
+		cache[region] = newClient
+
+		return newClient
+	}
 }

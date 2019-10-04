@@ -256,6 +256,16 @@ func (str *String) String() string {
 	return string(*str)
 }
 
+func (str *String) StringPointer() *string {
+	if str == nil || *str == "" {
+		return nil
+	}
+
+	strValue := string(*str)
+
+	return &strValue
+}
+
 func (str *String) UnmarshalJSON(data []byte) error {
 	type stringAlias String
 

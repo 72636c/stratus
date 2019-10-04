@@ -49,6 +49,7 @@ type Stack struct {
 
 	Capabilities          []string
 	Parameters            StackParameters
+	Region                *string
 	Tags                  StackTags
 	TerminationProtection bool
 
@@ -72,6 +73,7 @@ func (stack *Stack) Hashable() interface{} {
 
 		Capabilities          []string
 		Parameters            StackParameters
+		Region                *string `json:"-"`
 		Tags                  StackTags
 		TerminationProtection bool
 
