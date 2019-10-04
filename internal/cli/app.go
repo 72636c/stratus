@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	awsclient "github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -83,20 +84,9 @@ func New() (_ *App, err error) {
 		return nil, err
 	}
 
-	// TODO: memoise
-	newClient := func(region *string) *stratus.Client {
-		regionConfig := aws.NewConfig()
+	newClient := newClientFactory(provider)
 
-		if region != nil {
-			regionConfig = regionConfig.WithRegion(*region)
-		}
-
-		cfnClient := cloudformation.New(provider, regionConfig)
-		s3Client := s3.New(provider, regionConfig)
-
-		return stratus.NewClient(cfnClient, s3Client)
-	}
-
+	// TODO: can we support per-stack regional parameters?
 	config.Init(provider)
 
 	cfg, err := config.FromPath(*cfgPath)
@@ -157,4 +147,32 @@ func (app *App) doAll(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+type clientFactory func(region *string) *stratus.Client
+
+func newClientFactory(provider awsclient.ConfigProvider) clientFactory {
+	cache := make(map[*string]*stratus.Client)
+
+	return func(region *string) *stratus.Client {
+		cachedClient, ok := cache[region]
+		if ok {
+			return cachedClient
+		}
+
+		regionConfig := aws.NewConfig()
+
+		if region != nil {
+			regionConfig = regionConfig.WithRegion(*region)
+		}
+
+		cfnClient := cloudformation.New(provider, regionConfig)
+		s3Client := s3.New(provider, regionConfig)
+
+		newClient := stratus.NewClient(cfnClient, s3Client)
+
+		cache[region] = newClient
+
+		return newClient
+	}
 }
