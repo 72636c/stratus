@@ -14,6 +14,7 @@ type RawStack struct {
 
 	Capabilities          RawStackCapabilities `json:"capabilities"`
 	Parameters            RawStackParameters   `json:"parameters"`
+	Region                String               `json:"region"`
 	Tags                  RawStackTags         `json:"tags"`
 	TerminationProtection Bool                 `json:"terminationProtection" yaml:"terminationProtection"`
 
