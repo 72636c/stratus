@@ -73,7 +73,7 @@ func (stack *Stack) Hashable() interface{} {
 
 		Capabilities          []string
 		Parameters            StackParameters
-		Region                *string
+		Region                *string `json:"-"`
 		Tags                  StackTags
 		TerminationProtection bool
 
