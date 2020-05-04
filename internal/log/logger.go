@@ -7,21 +7,43 @@ import (
 	"strings"
 
 	"github.com/alecthomas/chroma/quick"
+	"github.com/efekarakus/termcolor"
 	"github.com/logrusorgru/aurora"
 	"gopkg.in/yaml.v2"
 )
 
 var (
-	ColourLogger   = new(colourLogger)
+	ColourLogger   = newColourLogger()
 	StandardLogger = new(standardLogger)
 )
+
+func detectFormatter() string {
+	switch level := termcolor.SupportLevel(os.Stdout); level {
+	case termcolor.Level16M:
+		return "terminal16m"
+	case termcolor.Level256:
+		return "terminal256"
+	case termcolor.LevelBasic:
+		return "terminal"
+	default:
+		return ""
+	}
+}
 
 type Logger interface {
 	Data(model interface{})
 	Title(format string, arguments ...interface{})
 }
 
-type colourLogger struct{}
+type colourLogger struct {
+	formatter string
+}
+
+func newColourLogger() *colourLogger {
+	return &colourLogger{
+		formatter: detectFormatter(),
+	}
+}
 
 func (logger *colourLogger) Data(model interface{}) {
 	if str, ok := model.(string); ok {
@@ -35,7 +57,7 @@ func (logger *colourLogger) Data(model interface{}) {
 		return
 	}
 
-	err = quick.Highlight(os.Stdout, str, "yaml", "terminal256", "pygments")
+	err = quick.Highlight(os.Stdout, str, "yaml", logger.formatter, "arduino")
 	if err != nil {
 		fmt.Printf("%s", str)
 	}
