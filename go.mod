@@ -1,5 +1,7 @@
 module github.com/72636c/stratus
 
+go 1.14
+
 require (
 	github.com/alecthomas/chroma v0.6.4
 	github.com/aws/aws-sdk-go v1.16.26
