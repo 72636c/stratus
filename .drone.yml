@@ -20,7 +20,7 @@ steps:
         - push
 
   - name: test
-    image: 72636c/golang:1.12
+    image: 72636c/golang:1.14
     commands:
       - revive -config .revive.toml -exclude vendor/... -formatter friendly ./...
       - go test -cover -v ./...
@@ -73,4 +73,4 @@ steps:
 
 ---
 kind: signature
-hmac: 8aecfe8b5d4a0f71b318392ec03a78e7fe91d295545b47a28ea2f0ab28f79edc
+hmac: 60db63d428a0b0d200b37182f5cdc42957dc665c9fd0aaffe526a44e861393b4
