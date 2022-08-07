@@ -15,9 +15,9 @@ import (
 
 var (
 	blockedVariables = map[string]struct{}{
-		"AWS_ACCESS_KEY_ID":     struct{}{},
-		"AWS_SECRET_ACCESS_KEY": struct{}{},
-		"AWS_SESSION_TOKEN":     struct{}{},
+		"AWS_ACCESS_KEY_ID":     {},
+		"AWS_SECRET_ACCESS_KEY": {},
+		"AWS_SESSION_TOKEN":     {},
 	}
 
 	extensionToUnmarshal = map[string]func([]byte, interface{}) error{
