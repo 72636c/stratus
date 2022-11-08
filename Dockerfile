@@ -1,4 +1,4 @@
-FROM golang:1.14-alpine AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.19-alpine AS builder
 
 RUN \
   echo 'nobody:x:65534:65534:nobody:/:' > /tmp/passwd && \
@@ -14,7 +14,11 @@ RUN go mod download
 COPY internal/ ./internal/
 COPY stratus.go ./
 
-RUN CGO_ENABLED=0 go build -installsuffix 'static' -o /app .
+ARG TARGETARCH
+ARG TARGETOS
+
+RUN CGO_ENABLED=0 GOARCH=${TARGETARCH} GOOS=${TARGETOS} \
+  go build -installsuffix 'static' -o /app .
 
 FROM gcr.io/distroless/base:debug AS final-base
 

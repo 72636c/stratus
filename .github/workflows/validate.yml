@@ -1,0 +1,71 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+  workflow_run:
+    branches:
+      - main
+    types:
+      - completed
+    workflows:
+      - Release
+
+permissions: {}
+
+jobs:
+  docker:
+    if: ${{ github.event_name == 'pull_request' && github.ref != 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build (base)
+        uses: docker/build-push-action@v3
+        with:
+          push: false
+          platforms: |
+            linux/amd64
+            linux/arm64
+          target: final-base
+
+      - name: Build (static)
+        uses: docker/build-push-action@v3
+        with:
+          push: false
+          platforms: |
+            linux/amd64
+            linux/arm64
+          target: final-static
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+
+      - name: Install dependencies
+        run: |
+          go install github.com/mgechev/revive@latest
+          go install golang.org/x/lint/golint@latest
+          go install golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow@latest
+
+      - name: Test
+        run: |-
+          revive -config .revive.toml -exclude vendor/... -formatter friendly ./...
+          go test -cover -v ./...
+          go vet ./...
+          go vet -vettool="$(command -v shadow)" ./...
