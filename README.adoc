@@ -1,8 +1,13 @@
 = Stratus
 
-image:https://github.com/72636c/stratus/actions/workflows/codeql-analysis.yml/badge.svg?branch=main[CodeQL, link="https://github.com/72636c/stratus/actions/workflows/codeql-analysis.yml"]
-image:https://github.com/72636c/stratus/actions/workflows/validate.yml/badge.svg?branch=main[Validate, link="https://github.com/72636c/stratus/actions/workflows/validate.yml"]
-image:https://github.com/72636c/stratus/actions/workflows/release.yml/badge.svg?branch=main[Release, link="https://github.com/72636c/stratus/actions/workflows/release.yml"]
+:repo: 72636c/stratus
+:hub: https://hub.docker.com/r/{repo}
+:workflows: https://github.com/{repo}/actions/workflows
+
+image:{workflows}/codeql-analysis.yml/badge.svg?branch=main[CodeQL,link="{workflows}/codeql-analysis.yml"]
+image:{workflows}/validate.yml/badge.svg?branch=main[Validate,link="{workflows}/validate.yml"]
+image:{workflows}/release.yml/badge.svg?branch=main[Release,link="{workflows}/release.yml"]
+image:https://img.shields.io/docker/pulls/{repo}.svg[link={hub}]
 
 Simple layer for managing CloudFormation stacks in CI/CD.
 
