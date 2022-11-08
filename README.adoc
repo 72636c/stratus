@@ -1,6 +1,8 @@
 = Stratus
 
-image:https://cloud.drone.io/api/badges/72636c/stratus/status.svg[Build Status, link="https://cloud.drone.io/72636c/stratus"]
+image:https://github.com/72636c/stratus/actions/workflows/codeql-analysis.yml/badge.svg?branch=main[CodeQL, link="https://github.com/72636c/stratus/actions/workflows/codeql-analysis.yml"]
+image:https://github.com/72636c/stratus/actions/workflows/validate.yml/badge.svg?branch=main[Validate, link="https://github.com/72636c/stratus/actions/workflows/validate.yml"]
+image:https://github.com/72636c/stratus/actions/workflows/release.yml/badge.svg?branch=main[Release, link="https://github.com/72636c/stratus/actions/workflows/release.yml"]
 
 Simple layer for managing CloudFormation stacks in CI/CD.
 
