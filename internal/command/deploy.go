@@ -16,8 +16,13 @@ func Deploy(
 	logger.Title("Find existing change set")
 
 	changeSet, err := client.FindExistingChangeSet(ctx, stack)
+
 	if err != nil {
-		return err
+		logger.Title("Could not find existing change set. Creating new change set.")
+
+		if _, changeSet, err = Stage(ctx, client, stack); err != nil {
+			return err
+		}
 	}
 
 	if changeSet != nil {

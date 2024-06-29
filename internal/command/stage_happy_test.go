@@ -111,7 +111,7 @@ func Test_Stage_Happy_CreateChangeSet(t *testing.T) {
 
 	client := stratus.NewClient(cfn, nil)
 
-	_, err := command.Stage(context.Background(), client, stack)
+	_, _, err := command.Stage(context.Background(), client, stack)
 	assert.NoError(err)
 }
 
@@ -199,7 +199,7 @@ func Test_Stage_Happy_NoopChangeSet(t *testing.T) {
 
 	client := stratus.NewClient(cfn, nil)
 
-	_, err := command.Stage(context.Background(), client, stack)
+	_, _, err := command.Stage(context.Background(), client, stack)
 	assert.NoError(err)
 }
 
@@ -321,7 +321,7 @@ func Test_Stage_Happy_NoopChangeSet_UploadArtefacts(t *testing.T) {
 
 	client := stratus.NewClient(cfn, s3Client)
 
-	_, err := command.Stage(context.Background(), client, stack)
+	_, _, err := command.Stage(context.Background(), client, stack)
 	assert.NoError(err)
 }
 
@@ -403,6 +403,6 @@ func Test_Stage_Happy_UpdateChangeSet(t *testing.T) {
 
 	client := stratus.NewClient(cfn, nil)
 
-	_, err := command.Stage(context.Background(), client, stack)
+	_, _, err := command.Stage(context.Background(), client, stack)
 	assert.NoError(err)
 }

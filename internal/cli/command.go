@@ -34,6 +34,6 @@ func stageAdapter(
 	client *stratus.Client,
 	stack *config.Stack,
 ) (err error) {
-	_, err = command.Stage(ctx, client, stack)
+	_, _, err = command.Stage(ctx, client, stack)
 	return
 }
