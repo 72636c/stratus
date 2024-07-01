@@ -114,10 +114,12 @@ func isAcceptableChangeSetStatus(
 	return false
 }
 
-func isNoopChangeSet(output *cloudformation.DescribeChangeSetOutput) bool {
+func IsNoopChangeSet(output *cloudformation.DescribeChangeSetOutput) bool {
 	return output != nil &&
 		output.Status != nil &&
 		output.StatusReason != nil &&
+		output.ExecutionStatus != nil &&
+		*output.ExecutionStatus == cloudformation.ExecutionStatusUnavailable &&
 		*output.Status == cloudformation.ChangeSetStatusFailed &&
 		*output.StatusReason == noopChangeSetStatusReason
 }

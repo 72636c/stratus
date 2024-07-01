@@ -361,9 +361,12 @@ func Test_Deploy_Happy_NoopChangeSet(t *testing.T) {
 		).
 		Return(
 			&cloudformation.DescribeChangeSetOutput{
-				ChangeSetName: aws.String(mockChangeSetUpdateName),
-				Capabilities:  make([]*string, 0),
-				Parameters:    make([]*cloudformation.Parameter, 0),
+				ChangeSetName:   aws.String(mockChangeSetUpdateName),
+				Capabilities:    make([]*string, 0),
+				Parameters:      make([]*cloudformation.Parameter, 0),
+				ExecutionStatus: aws.String(cloudformation.ExecutionStatusUnavailable),
+				Status:          aws.String(cloudformation.ChangeSetStatusFailed),
+				StatusReason:    aws.String("The submitted information didn't contain changes. Submit different information to create a change set."),
 			},
 			nil,
 		).
@@ -470,9 +473,12 @@ func Test_Deploy_Happy_NoopChangeSet_UploadArtefacts(t *testing.T) {
 		).
 		Return(
 			&cloudformation.DescribeChangeSetOutput{
-				ChangeSetName: aws.String(mockChangeSetUpdateName),
-				Capabilities:  make([]*string, 0),
-				Parameters:    make([]*cloudformation.Parameter, 0),
+				ChangeSetName:   aws.String(mockChangeSetUpdateName),
+				Capabilities:    make([]*string, 0),
+				Parameters:      make([]*cloudformation.Parameter, 0),
+				ExecutionStatus: aws.String(cloudformation.ExecutionStatusUnavailable),
+				Status:          aws.String(cloudformation.ChangeSetStatusFailed),
+				StatusReason:    aws.String("The submitted information didn't contain changes. Submit different information to create a change set."),
 			},
 			nil,
 		).

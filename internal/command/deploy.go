@@ -1,6 +1,7 @@
 package command
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/72636c/stratus/internal/config"
@@ -18,21 +19,27 @@ func Deploy(
 	logger.Title("Find existing change set")
 
 	changeSet, err := client.FindExistingChangeSet(ctx, stack)
-
 	if err != nil {
-		if os.Getenv("FORCE_DEPLOY") == "true" {
-			logger.Title("Could not find existing change set. FORCE_DEPLOY is true, so creating a new change set.")
+		return err
+	}
 
-			if _, changeSet, err = Stage(ctx, client, stack); err != nil {
-				return err
-			}
-		} else {
-			logger.Title("Could not find existing change set, exiting. To force a deployment with a new change set, set FORCE_DEPLOY=true and retry.")
+	if changeSet == nil && os.Getenv("FORCE_DEPLOY") == "true" {
+		logger.Title("Could not find existing change set. FORCE_DEPLOY is true, so creating a new change set.")
+
+		_, changeSet, err = Stage(ctx, client, stack)
+		if err != nil {
 			return err
 		}
 	}
 
-	if changeSet != nil {
+	if changeSet == nil {
+		logger.Title("Could not find existing change set, exiting. To force a deployment with a new change set, set FORCE_DEPLOY=true and retry.")
+		return fmt.Errorf("could not find existing change set")
+	}
+
+	if stratus.IsNoopChangeSet(changeSet) {
+		logger.Title("No changes to execute.")
+	} else {
 		logger.Title("Execute change set")
 
 		err = client.ExecuteChangeSet(ctx, stack, *changeSet.ChangeSetName)

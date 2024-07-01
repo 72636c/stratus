@@ -222,7 +222,7 @@ func (client *Client) FindExistingChangeSet(
 ) (*cloudformation.DescribeChangeSetOutput, error) {
 	listOutput, err := client.listChangeSets(ctx, stack)
 	if isStackDoesNotExistError(err) {
-		return nil, fmt.Errorf("stack '%s' does not exist", stack.Name)
+		return nil, nil
 	}
 	if err != nil {
 		return nil, err
@@ -263,15 +263,11 @@ func (client *Client) FindExistingChangeSet(
 				)
 			}
 
-			if *summary.ExecutionStatus == cloudformation.ExecutionStatusUnavailable {
-				return nil, nil
-			}
-
 			return changeSetOutput, nil
 		}
 	}
 
-	return nil, fmt.Errorf("change set '*%s*' does not exist", stack.Checksum)
+	return nil, nil
 }
 
 func (client *Client) SetStackPolicy(
@@ -451,7 +447,7 @@ func (client *Client) handleCreateChangeSetError(
 		return err
 	}
 
-	if !isNoopChangeSet(describeOutput) {
+	if !IsNoopChangeSet(describeOutput) {
 		return err
 	}
 
