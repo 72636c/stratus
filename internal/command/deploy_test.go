@@ -1,6 +1,7 @@
 package command_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -530,6 +531,8 @@ func Test_Deploy_Happy_ImplicitStage(t *testing.T) {
 		Checksum: mockChecksum,
 	}
 
+	os.Setenv("FORCE_DEPLOY", "true")
+
 	cfn := stratus.NewCloudFormationMock()
 	defer cfn.AssertExpectations(t)
 	cfn.
@@ -672,4 +675,44 @@ func Test_Deploy_Happy_ImplicitStage(t *testing.T) {
 
 	err := command.Deploy(context.Background(), client, stack)
 	assert.NoError(err)
+
+	os.Unsetenv("FORCE_DEPLOY")
+}
+
+func Test_Deploy_NoImplicitStage_Fails(t *testing.T) {
+	assert := assert.New(t)
+
+	stack := &config.Stack{
+		Name: mockStackName,
+
+		Capabilities:          make([]string, 0),
+		Parameters:            make(config.StackParameters, 0),
+		TerminationProtection: true,
+
+		Policy:   []byte(mockStackPolicy),
+		Template: []byte(mockStackTemplate),
+
+		Checksum: mockChecksum,
+	}
+
+	cfn := stratus.NewCloudFormationMock()
+	defer cfn.AssertExpectations(t)
+	cfn.
+		On(
+			"ListChangeSetsWithContext",
+			&cloudformation.ListChangeSetsInput{
+				StackName: aws.String(stack.Name),
+			},
+		).
+		Return(
+			&cloudformation.ListChangeSetsOutput{
+				Summaries: []*cloudformation.ChangeSetSummary{},
+			},
+			nil,
+		)
+
+	client := stratus.NewClient(cfn, nil)
+
+	err := command.Deploy(context.Background(), client, stack)
+	assert.Error(err)
 }
