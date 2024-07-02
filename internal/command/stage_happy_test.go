@@ -111,7 +111,7 @@ func Test_Stage_Happy_CreateChangeSet(t *testing.T) {
 
 	client := stratus.NewClient(cfn, nil)
 
-	_, err := command.Stage(context.Background(), client, stack)
+	_, _, err := command.Stage(context.Background(), client, stack)
 	assert.NoError(err)
 }
 
@@ -168,8 +168,9 @@ func Test_Stage_Happy_NoopChangeSet(t *testing.T) {
 		).
 		Return(
 			&cloudformation.DescribeChangeSetOutput{
-				Status:       aws.String(cloudformation.ChangeSetStatusFailed),
-				StatusReason: aws.String("The submitted information didn't contain changes. Submit different information to create a change set."),
+				Status:          aws.String(cloudformation.ChangeSetStatusFailed),
+				StatusReason:    aws.String("The submitted information didn't contain changes. Submit different information to create a change set."),
+				ExecutionStatus: aws.String(cloudformation.ExecutionStatusUnavailable),
 			},
 			nil,
 		).
@@ -199,7 +200,7 @@ func Test_Stage_Happy_NoopChangeSet(t *testing.T) {
 
 	client := stratus.NewClient(cfn, nil)
 
-	_, err := command.Stage(context.Background(), client, stack)
+	_, _, err := command.Stage(context.Background(), client, stack)
 	assert.NoError(err)
 }
 
@@ -260,8 +261,9 @@ func Test_Stage_Happy_NoopChangeSet_UploadArtefacts(t *testing.T) {
 		).
 		Return(
 			&cloudformation.DescribeChangeSetOutput{
-				Status:       aws.String(cloudformation.ChangeSetStatusFailed),
-				StatusReason: aws.String("The submitted information didn't contain changes. Submit different information to create a change set."),
+				Status:          aws.String(cloudformation.ChangeSetStatusFailed),
+				StatusReason:    aws.String("The submitted information didn't contain changes. Submit different information to create a change set."),
+				ExecutionStatus: aws.String(cloudformation.ExecutionStatusUnavailable),
 			},
 			nil,
 		).
@@ -321,7 +323,7 @@ func Test_Stage_Happy_NoopChangeSet_UploadArtefacts(t *testing.T) {
 
 	client := stratus.NewClient(cfn, s3Client)
 
-	_, err := command.Stage(context.Background(), client, stack)
+	_, _, err := command.Stage(context.Background(), client, stack)
 	assert.NoError(err)
 }
 
@@ -403,6 +405,6 @@ func Test_Stage_Happy_UpdateChangeSet(t *testing.T) {
 
 	client := stratus.NewClient(cfn, nil)
 
-	_, err := command.Stage(context.Background(), client, stack)
+	_, _, err := command.Stage(context.Background(), client, stack)
 	assert.NoError(err)
 }
