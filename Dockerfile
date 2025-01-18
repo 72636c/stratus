@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM} golang:1.19-alpine AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.23-alpine AS builder
 
 RUN \
   echo 'nobody:x:65534:65534:nobody:/:' > /tmp/passwd && \

@@ -1,6 +1,6 @@
 module github.com/72636c/stratus
 
-go 1.19
+go 1.23
 
 require (
 	github.com/alecthomas/chroma v0.7.2
