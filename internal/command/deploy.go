@@ -7,6 +7,7 @@ import (
 	"github.com/72636c/stratus/internal/config"
 	"github.com/72636c/stratus/internal/context"
 	"github.com/72636c/stratus/internal/stratus"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 )
 
 func Deploy(
@@ -37,12 +38,39 @@ func Deploy(
 		return fmt.Errorf("could not find existing change set")
 	}
 
+	logger.Title("Getting stack status")
+
+	stackStatus, err := client.GetStackStatus(ctx, stack)
+	if err != nil {
+		return err
+	}
+
+	// Stack policies cannot be set on stacks that haven't finished creating
+	if stackStatus != cloudformation.StackStatusReviewInProgress {
+		logger.Title("Set stack policy")
+
+		err = client.SetStackPolicy(ctx, stack)
+		if err != nil {
+			return err
+		}
+	}
+
 	if stratus.IsNoopChangeSet(changeSet) {
 		logger.Title("No changes to execute.")
 	} else {
 		logger.Title("Execute change set")
 
 		err = client.ExecuteChangeSet(ctx, stack, *changeSet.ChangeSetName)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Apply earlier skipped stack policy
+	if stackStatus == cloudformation.StackStatusReviewInProgress {
+		logger.Title("Set stack policy")
+
+		err = client.SetStackPolicy(ctx, stack)
 		if err != nil {
 			return err
 		}
@@ -56,13 +84,6 @@ func Deploy(
 	}
 
 	logger.Data(outputs)
-
-	logger.Title("Set stack policy")
-
-	err = client.SetStackPolicy(ctx, stack)
-	if err != nil {
-		return err
-	}
 
 	logger.Title("Update termination protection")
 
