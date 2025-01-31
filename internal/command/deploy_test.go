@@ -140,7 +140,8 @@ func Test_Deploy_Happy_ExistingChangeSet_Create(t *testing.T) {
 			&cloudformation.DescribeStacksOutput{
 				Stacks: []*cloudformation.Stack{
 					&cloudformation.Stack{
-						Outputs: make([]*cloudformation.Output, 0),
+						StackStatus: aws.String(cloudformation.StackStatusReviewInProgress),
+						Outputs:     make([]*cloudformation.Output, 0),
 					},
 				},
 			},
@@ -271,7 +272,8 @@ func Test_Deploy_Happy_ExistingChangeSet_Update(t *testing.T) {
 			&cloudformation.DescribeStacksOutput{
 				Stacks: []*cloudformation.Stack{
 					&cloudformation.Stack{
-						Outputs: make([]*cloudformation.Output, 0),
+						StackStatus: aws.String(cloudformation.StackStatusUpdateComplete),
+						Outputs:     make([]*cloudformation.Output, 0),
 					},
 				},
 			},
@@ -380,7 +382,8 @@ func Test_Deploy_Happy_NoopChangeSet(t *testing.T) {
 			&cloudformation.DescribeStacksOutput{
 				Stacks: []*cloudformation.Stack{
 					&cloudformation.Stack{
-						Outputs: make([]*cloudformation.Output, 0),
+						StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+						Outputs:     make([]*cloudformation.Output, 0),
 					},
 				},
 			},
@@ -492,7 +495,8 @@ func Test_Deploy_Happy_NoopChangeSet_UploadArtefacts(t *testing.T) {
 			&cloudformation.DescribeStacksOutput{
 				Stacks: []*cloudformation.Stack{
 					&cloudformation.Stack{
-						Outputs: make([]*cloudformation.Output, 0),
+						StackStatus: aws.String(cloudformation.StackStatusCreateComplete),
+						Outputs:     make([]*cloudformation.Output, 0),
 					},
 				},
 			},
@@ -608,6 +612,7 @@ func Test_Deploy_Happy_ImplicitStage(t *testing.T) {
 			&cloudformation.DescribeStacksOutput{
 				Stacks: []*cloudformation.Stack{
 					{
+						StackStatus:                 aws.String(cloudformation.StackStatusCreateComplete),
 						EnableTerminationProtection: aws.Bool(false),
 					},
 				},
