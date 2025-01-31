@@ -37,6 +37,13 @@ func Deploy(
 		return fmt.Errorf("could not find existing change set")
 	}
 
+	logger.Title("Set stack policy")
+
+	err = client.SetStackPolicy(ctx, stack)
+	if err != nil {
+		return err
+	}
+
 	if stratus.IsNoopChangeSet(changeSet) {
 		logger.Title("No changes to execute.")
 	} else {
@@ -56,13 +63,6 @@ func Deploy(
 	}
 
 	logger.Data(outputs)
-
-	logger.Title("Set stack policy")
-
-	err = client.SetStackPolicy(ctx, stack)
-	if err != nil {
-		return err
-	}
 
 	logger.Title("Update termination protection")
 
