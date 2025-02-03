@@ -372,6 +372,18 @@ func (client *Client) ValidateTemplate(
 	return client.cfn.ValidateTemplateWithContext(ctx, input)
 }
 
+func (client *Client) GetStackStatus(
+	ctx context.Context,
+	stack *config.Stack,
+) (string, error) {
+	output, err := client.describeStack(ctx, stack)
+	if err != nil {
+		return "", err
+	}
+
+	return *output.StackStatus, nil
+}
+
 func (client *Client) describeChangeSet(
 	ctx context.Context,
 	stack *config.Stack,
